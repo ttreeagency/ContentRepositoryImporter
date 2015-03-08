@@ -1,5 +1,6 @@
-Ttree:
-  ContentRepositoryImporter:
+---
+#Ttree:
+#  ContentRepositoryImporter:
 #    presets:
 #      'base':
 #        - 'label': 'News Import'
@@ -7,11 +8,11 @@ Ttree:
 #          'importerClassName': 'Your\Package\Importer\Importer\NewsImporter'
 #
 #        - 'label': 'Page Import'
-#          'dataProviderClassName': 'Ttree\ArchitectesCh\Importer\DataProvider\PageDataProvider'
-#          'importerClassName': 'Ttree\ArchitectesCh\Importer\Importer\PageImporter'
+#          'dataProviderClassName': 'Your\Package\Importer\DataProvider\PageDataProvider'
+#          'importerClassName': 'Your\Package\Importer\Importer\PageImporter'
 #          'batchSize': 120
 #
 #        - 'label': 'Page Content Import'
-#          'dataProviderClassName': 'Ttree\ArchitectesCh\Importer\DataProvider\PageContentDataProvider'
-#          'importerClassName': 'Ttree\ArchitectesCh\Importer\Importer\PageContentImporter'
+#          'dataProviderClassName': 'Your\Package\Importer\DataProvider\PageContentDataProvider'
+#          'importerClassName': 'Your\Package\Importer\Importer\PageContentImporter'
 #          'batchSize': 120
