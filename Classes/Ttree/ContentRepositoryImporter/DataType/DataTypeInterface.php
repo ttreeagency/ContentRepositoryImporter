@@ -1,0 +1,26 @@
+<?php
+namespace Ttree\ContentRepositoryImporter\DataType;
+
+/*                                                                        *
+ * This script belongs to the TYPO3 Flow package "Ttree.ArchitectesCh".   *
+ *                                                                        */
+
+use TYPO3\Flow\Annotations as Flow;
+
+/**
+ * Data Type Interface
+ */
+interface DataTypeInterface {
+
+	/**
+	 * @param mixed $value
+	 * @return $this
+	 */
+	public static function create($value);
+
+	/**
+	 * @return mixed
+	 */
+	public function getValue();
+
+}

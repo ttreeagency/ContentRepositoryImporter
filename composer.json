@@ -1,0 +1,15 @@
+{
+    "name": "ttree/contentrepositoryimporter",
+    "type": "typo3-flow-package",
+    "description": "Helper package to import data in the TYPO3CR",
+    "require": {
+        "typo3/flow": "*",
+        "ezyang/htmlpurifier": "dev-master",
+        "cocur/slugify": "dev-master"
+    },
+    "autoload": {
+        "psr-0": {
+            "Ttree\\ContentRepositoryImporter": "Classes"
+        }
+    }
+}

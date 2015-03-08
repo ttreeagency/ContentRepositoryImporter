@@ -1,0 +1,19 @@
+Ttree\ContentRepositoryImporter\Service\ProcessedNodeService:
+  properties:
+    cache:
+      object:
+        factoryObjectName: TYPO3\Flow\Cache\CacheManager
+        factoryMethodName: getCache
+        arguments:
+          1:
+            value: Ttree_ContentRepositoryImporter_Processed_Node
+
+Ttree\ContentRepositoryImporter\Command\ImportCommandController:
+  properties:
+    cache:
+      object:
+        factoryObjectName: TYPO3\Flow\Cache\CacheManager
+        factoryMethodName: getCache
+        arguments:
+          1:
+            value: Ttree_ContentRepositoryImporter_Processed_Node
