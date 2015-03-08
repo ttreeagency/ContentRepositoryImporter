@@ -119,7 +119,7 @@ class ImportCommandController extends CommandController {
 	 */
 	public function executeBatchCommand($dataProviderClassName, $importerClassName, $logPrefix, $offset = NULL, $batchSize = NULL) {
 		/** @var DataProvider $dataProvider */
-		$dataProvider = $this->objectManager->get($dataProviderClassName, $offset, $batchSize);
+		$dataProvider = $dataProviderClassName::create($offset, $batchSize);
 
 		/** @var Importer $importer */
 		$importer = $this->objectManager->get($importerClassName);

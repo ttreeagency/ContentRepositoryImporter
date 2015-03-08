@@ -15,13 +15,26 @@ interface DataProviderInterface {
 	/**
 	 * @param integer $offset
 	 * @param integer $limit
+	 * @return DataProviderInterface
 	 */
-	public function __construct($offset = NULL, $limit = NULL);
+	public static function create($offset = NULL, $limit = NULL);
 
 	/**
 	 * @return array
 	 */
 	public function fetch();
+
+	/**
+	 * @param integer $limit
+	 * @return void
+	 */
+	public function setLimit($limit);
+
+	/**
+	 * @param integer $offset
+	 * @return void
+	 */
+	public function setOffset($offset);
 
 	/**
 	 * @return boolean

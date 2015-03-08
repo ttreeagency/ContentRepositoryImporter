@@ -44,10 +44,16 @@ abstract class DataProvider implements DataProviderInterface {
 	/**
 	 * @param integer $offset
 	 * @param integer $limit
+	 * @return DataProviderInterface
 	 */
-	public function __construct($offset = NULL, $limit = NULL) {
-		$this->offset = $offset ? (integer)$offset : NULL;
-		$this->limit = $limit ? (integer)$limit : NULL;
+	public static function create($offset = NULL, $limit = NULL) {
+		$class = get_called_class();
+		/** @var DataProviderInterface $dataProvider */
+		$dataProvider = new $class();
+		$dataProvider->setOffset($offset);
+		$dataProvider->setLimit($limit);
+
+		return $dataProvider;
 	}
 
 	/**
@@ -71,6 +77,20 @@ abstract class DataProvider implements DataProviderInterface {
 	 */
 	public function getCount() {
 		return $this->count;
+	}
+
+	/**
+	 * @param integer $offset
+	 */
+	public function setOffset($offset) {
+		$this->offset = (integer)$offset;
+	}
+
+	/**
+	 * @param integer $limit
+	 */
+	public function setLimit($limit) {
+		$this->limit = (integer)$limit;
 	}
 
 	/**
