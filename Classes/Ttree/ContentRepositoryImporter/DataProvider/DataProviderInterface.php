@@ -13,6 +13,12 @@ use TYPO3\Flow\Annotations as Flow;
 interface DataProviderInterface {
 
 	/**
+	 * @param integer $offset
+	 * @param integer $limit
+	 */
+	public function __construct($offset = NULL, $limit = NULL);
+
+	/**
 	 * @return array
 	 */
 	public function fetch();

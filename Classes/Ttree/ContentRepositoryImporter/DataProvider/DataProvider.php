@@ -41,11 +41,14 @@ abstract class DataProvider implements DataProviderInterface {
 	 */
 	protected $count = 0;
 
-	function __construct($offset = NULL, $limit = NULL) {
+	/**
+	 * @param integer $offset
+	 * @param integer $limit
+	 */
+	public function __construct($offset = NULL, $limit = NULL) {
 		$this->offset = $offset ? (integer)$offset : NULL;
 		$this->limit = $limit ? (integer)$limit : NULL;
 	}
-
 
 	/**
 	 * @return \Doctrine\DBAL\Query\QueryBuilder
