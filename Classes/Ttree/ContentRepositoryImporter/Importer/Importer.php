@@ -5,6 +5,7 @@ namespace Ttree\ContentRepositoryImporter\Importer;
  * This script belongs to the TYPO3 Flow package "Ttree.ArchitectesCh".   *
  *                                                                        */
 
+use Ttree\ContentRepositoryImporter\Domain\Model\ProcessedNodeDefinition;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Exception;
@@ -124,6 +125,43 @@ abstract class Importer implements ImporterInterface {
 	 */
 	public function setLogPrefix($logPrefix) {
 		$this->logPrefix = $logPrefix;
+	}
+
+	/**
+	 * @param string $name
+	 * @param string $externalIdentifier
+	 * @param string $nodeName
+	 * @param NodeInterface $storageNode
+	 * @param boolean $skipExistingNode
+	 * @return boolean
+	 */
+	protected function skipNodeProcessing($name, $externalIdentifier, $nodeName, NodeInterface $storageNode, $skipExistingNode = TRUE) {
+		if ($this->getNodeProcessing($externalIdentifier)) {
+			$this->log(sprintf('Skip already processed node "%s" ...', $name), LOG_NOTICE);
+			return TRUE;
+		}
+		if ($skipExistingNode === TRUE && $storageNode->getNode($nodeName) !== NULL) {
+			$this->log(sprintf('Skip existing node "%s" ...', $name), LOG_INFO);
+			return TRUE;
+		}
+
+		return FALSE;
+	}
+
+	/**
+	 * @param NodeInterface $node
+	 * @param string $externalIdentifier
+	 */
+	protected function registerNodeProcessing(NodeInterface $node, $externalIdentifier) {
+		$this->processedNodeService->set(get_called_class(), $externalIdentifier, $node);
+	}
+
+	/**
+	 * @param string $externalIdentifier
+	 * @return ProcessedNodeDefinition
+	 */
+	protected function getNodeProcessing($externalIdentifier) {
+		return $this->processedNodeService->get(get_called_class(), $externalIdentifier);
 	}
 
 	/**
