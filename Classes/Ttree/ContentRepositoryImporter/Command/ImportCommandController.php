@@ -75,25 +75,25 @@ class ImportCommandController extends CommandController {
 			$this->outputLine(sprintf('Preset "%s" not found ...', $preset));
 			$this->quit(1);
 		}
-		array_walk($presetSettings, function ($command, $partName) use ($arguments, $parts) {
+		array_walk($presetSettings, function ($partSetting, $partName) use ($arguments, $parts) {
 			$this->outputLine();
-			$this->outputFormatted(sprintf('<b>%s</b>', $command['label']));
+			$this->outputFormatted(sprintf('<b>%s</b>', $partSetting['label']));
 			if ($parts !== array() && !in_array($partName, $parts)) {
 				$this->outputLine('Skipped');
 				return;
 			}
-			$arguments['dataProviderClassName'] = (string)$command['dataProviderClassName'];
-			$arguments['importerClassName'] = (string)$command['importerClassName'];
+			$arguments['dataProviderClassName'] = (string)$partSetting['dataProviderClassName'];
+			$arguments['importerClassName'] = (string)$partSetting['importerClassName'];
 			$arguments['currentBatch'] = 1;
-			if (isset($command['batchSize'])) {
-				$arguments['batchSize'] = (integer)$command['batchSize'];
+			if (isset($partSetting['batchSize'])) {
+				$arguments['batchSize'] = (integer)$partSetting['batchSize'];
 				$arguments['offset'] = 0;
-				while (($count = $this->executeCommand($command, $arguments)) > 0) {
-					$arguments['offset'] += $count;
+				while (($count = $this->executeCommand($partSetting, $arguments)) > 0) {
+					$arguments['offset'] += $arguments['batchSize'];
 					++$arguments['currentBatch'];
 				}
 			} else {
-				$this->executeCommand($command, $arguments);
+				$this->executeCommand($partSetting, $arguments);
 			}
 		});
 
@@ -112,7 +112,7 @@ class ImportCommandController extends CommandController {
 		$status = Scripts::executeCommand('ttree.contentrepositoryimporter:import:executebatch', $this->getFlowSettings(), TRUE, $arguments);
 		$count = (integer)ob_get_clean();
 		$elapsedTime = (microtime(true) - $startTime) * 1000;
-		$this->outputLine(sprintf('    #%d (%d records in %dms, %d ms per record)',  $arguments['currentBatch'], $count, $elapsedTime, $elapsedTime / $count));
+		$this->outputLine(sprintf('  #%d (%d records in %dms, %d ms per record)',  $arguments['currentBatch'], $count, $elapsedTime, $elapsedTime / $count));
 		if ($status !== TRUE) {
 			$this->outputLine("Command '%s' return an error", array($command));
 			$this->quit(1);
