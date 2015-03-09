@@ -3,16 +3,19 @@
 #  ContentRepositoryImporter:
 #    presets:
 #      'base':
-#        - 'label': 'News Import'
-#          'dataProviderClassName': 'Your\Package\Importer\DataProvider\NewsDataProvider'
-#          'importerClassName': 'Your\Package\Importer\Importer\NewsImporter'
+#        'news':
+#          label: 'News Import'
+#          dataProviderClassName: 'Your\Package\Importer\DataProvider\NewsDataProvider'
+#          importerClassName: 'Your\Package\Importer\Importer\NewsImporter'
 #
-#        - 'label': 'Page Import'
-#          'dataProviderClassName': 'Your\Package\Importer\DataProvider\PageDataProvider'
-#          'importerClassName': 'Your\Package\Importer\Importer\PageImporter'
-#          'batchSize': 120
+#        'page':
+#          label: 'Page Import'
+#          dataProviderClassName: 'Your\Package\Importer\DataProvider\PageDataProvider'
+#          importerClassName: 'Your\Package\Importer\Importer\PageImporter'
+#          batchSize': 120
 #
-#        - 'label': 'Page Content Import'
-#          'dataProviderClassName': 'Your\Package\Importer\DataProvider\PageContentDataProvider'
-#          'importerClassName': 'Your\Package\Importer\Importer\PageContentImporter'
-#          'batchSize': 120
+#        'pageContent':
+#          label: 'Page Content Import'
+#          dataProviderClassName: 'Your\Package\Importer\DataProvider\PageContentDataProvider'
+#          importerClassName: 'Your\Package\Importer\Importer\PageContentImporter'
+#          batchSize: 120

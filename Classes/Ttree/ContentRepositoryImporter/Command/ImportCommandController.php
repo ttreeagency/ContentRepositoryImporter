@@ -64,8 +64,10 @@ class ImportCommandController extends CommandController {
 	 * Batch process of the given preset
 	 *
 	 * @param string $preset
+	 * @param string $parts
 	 */
-	public function batchCommand($preset) {
+	public function batchCommand($preset, $parts = NULL) {
+		$parts = Arrays::trimExplode(',', $parts);
 		$this->outputLine('Start import ...');
 		$arguments = [ 'logPrefix' => Algorithms::generateRandomString(12) ];
 		$presetSettings = Arrays::getValueByPath($this->settings, array('presets', $preset));
@@ -73,20 +75,29 @@ class ImportCommandController extends CommandController {
 			$this->outputLine(sprintf('Preset "%s" not found ...', $preset));
 			$this->quit(1);
 		}
-		array_walk($presetSettings, function ($command) use ($arguments) {
+		array_walk($presetSettings, function ($command, $partName) use ($arguments, $parts) {
+			$this->outputLine();
+			$this->outputFormatted(sprintf('<b>%s</b>', $command['label']));
+			if ($parts !== array() && !in_array($partName, $parts)) {
+				$this->outputLine('Skipped');
+				return;
+			}
 			$arguments['dataProviderClassName'] = (string)$command['dataProviderClassName'];
 			$arguments['importerClassName'] = (string)$command['importerClassName'];
+			$arguments['currentBatch'] = 1;
 			if (isset($command['batchSize'])) {
 				$arguments['batchSize'] = (integer)$command['batchSize'];
 				$arguments['offset'] = 0;
 				while (($count = $this->executeCommand($command, $arguments)) > 0) {
 					$arguments['offset'] += $count;
+					++$arguments['currentBatch'];
 				}
 			} else {
 				$this->executeCommand($command, $arguments);
 			}
 		});
 
+		$this->outputLine();
 		$this->outputLine('Import finished');
 	}
 
@@ -96,11 +107,12 @@ class ImportCommandController extends CommandController {
 	 * @return integer
 	 */
 	protected function executeCommand(array $command, array $arguments) {
-		$this->outputLine(sprintf(' - %s', $command['label']));
+		$startTime = microtime(true);
 		ob_start();
 		$status = Scripts::executeCommand('ttree.contentrepositoryimporter:import:executebatch', $this->getFlowSettings(), TRUE, $arguments);
 		$count = (integer)ob_get_clean();
-		$this->outputLine('   Processed record(s): ' . $count);
+		$elapsedTime = (microtime(true) - $startTime) * 1000;
+		$this->outputLine(sprintf('    #%d (%d records in %dms, %d ms per record)',  $arguments['currentBatch'], $count, $elapsedTime, $elapsedTime / $count));
 		if ($status !== TRUE) {
 			$this->outputLine("Command '%s' return an error", array($command));
 			$this->quit(1);
