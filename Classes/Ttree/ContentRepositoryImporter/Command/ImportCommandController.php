@@ -107,7 +107,9 @@ class ImportCommandController extends CommandController {
 		$status = Scripts::executeCommand('ttree.contentrepositoryimporter:import:executebatch', $this->getFlowSettings(), TRUE, $partSetting->getCommandArguments());
 		$count = (integer)ob_get_clean();
 		$elapsedTime = (microtime(true) - $startTime) * 1000;
-		$this->outputLine('  #%d (%d records in %dms, %d ms per record)', [ $partSetting->getCurrentBatch(), $count, $elapsedTime, $elapsedTime / $count ]);
+		if ($count > 0) {
+			$this->outputLine('  #%d (%d records in %dms, %d ms per record)', [$partSetting->getCurrentBatch(), $count, $elapsedTime, $elapsedTime / $count]);
+		}
 		if ($status !== TRUE) {
 			$this->outputLine("Command '%s' return an error", [ $partSetting->getLabel() ] );
 			$this->quit(1);
