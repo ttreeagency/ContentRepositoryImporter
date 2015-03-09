@@ -18,8 +18,10 @@ class String extends DataType {
 	 * @param string $value
 	 */
 	protected function initializeValue($value) {
-		$this->value = trim($value);
-		$this->value = preg_replace('/\s+/u', ' ', $value);
+		$value = trim($value);
+		$value = preg_replace('/\s+/u', ' ', $value);
+		$value = strip_tags($value);
+		$this->value = $value;
 	}
 
 }
