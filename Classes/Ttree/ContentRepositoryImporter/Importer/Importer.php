@@ -141,7 +141,7 @@ abstract class Importer implements ImporterInterface {
 			return TRUE;
 		}
 		if ($skipExistingNode === TRUE && $storageNode->getNode($nodeName) !== NULL) {
-			$this->log(sprintf('Skip existing node "%s" ...', $name), LOG_INFO);
+			$this->log(sprintf('Skip existing node "%s" ...', $name), LOG_WARNING);
 			return TRUE;
 		}
 
