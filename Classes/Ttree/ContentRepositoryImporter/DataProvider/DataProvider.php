@@ -9,11 +9,18 @@ use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Log\SystemLoggerInterface;
 
 /**
  * Abstract Data Provider
  */
 abstract class DataProvider implements DataProviderInterface {
+
+	/**
+	 * @Flow\Inject
+	 * @var SystemLoggerInterface
+	 */
+	protected $logger;
 
 	/**
 	 * @var Connection
