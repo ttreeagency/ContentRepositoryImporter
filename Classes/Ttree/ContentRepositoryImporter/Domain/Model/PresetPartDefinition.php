@@ -85,14 +85,19 @@ class PresetPartDefinition  {
 	 * @return array
 	 */
 	public function getCommandArguments() {
-		return [
+		$arguments = [
 			'logPrefix' => $this->logPrefix,
 			'dataProviderClassName' => $this->dataProviderClassName,
 			'importerClassName' => $this->importerClassName,
-			'currentBatch' => $this->currentBatch,
-			'batchSize' => $this->batchSize,
-			'offset' => $this->offset
+			'currentBatch' => $this->currentBatch
 		];
+		if ($this->batchSize) {
+			$arguments['batchSize'] = (integer)$this->batchSize;
+		}
+		if ($this->offset) {
+			$arguments['offset'] = (integer)$this->offset;
+		}
+		return $arguments;
 	}
 
 	/**
