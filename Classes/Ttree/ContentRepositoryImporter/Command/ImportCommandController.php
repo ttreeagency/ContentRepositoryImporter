@@ -48,6 +48,21 @@ class ImportCommandController extends CommandController {
 	protected $settings;
 
 	/**
+	 * @var float
+	 */
+	protected $startTime;
+
+	/**
+	 * @var integer
+	 */
+	protected $elapsedTime;
+
+	/**
+	 * @var integer
+	 */
+	protected $batchCounter = 0;
+
+	/**
 	 * @param array $settings
 	 */
 	public function injectSettings(array $settings) {
@@ -68,6 +83,7 @@ class ImportCommandController extends CommandController {
 	 * @param string $parts
 	 */
 	public function batchCommand($preset, $parts = NULL) {
+		$this->startTime = microtime(TRUE);
 		$parts = Arrays::trimExplode(',', $parts);
 		$this->outputLine('Start import ...');
 		$logPrefix = Algorithms::generateRandomString(12);
@@ -77,6 +93,8 @@ class ImportCommandController extends CommandController {
 			$this->quit(1);
 		}
 		array_walk($presetSettings, function ($partSetting, $partName) use ($logPrefix, $parts) {
+			$this->elapsedTime = 0;
+			$this->batchCounter = 0;
 			$this->outputLine();
 			$this->outputFormatted(sprintf('<b>%s</b>', $partSetting['label']));
 			$partSetting = new PresetPartDefinition($partSetting, $logPrefix);
@@ -102,13 +120,15 @@ class ImportCommandController extends CommandController {
 	 * @return integer
 	 */
 	protected function executeCommand(PresetPartDefinition $partSetting) {
-		$startTime = microtime(true);
+		$startTime = microtime(TRUE);
 		ob_start();
 		$status = Scripts::executeCommand('ttree.contentrepositoryimporter:import:executebatch', $this->getFlowSettings(), TRUE, $partSetting->getCommandArguments());
 		$count = (integer)ob_get_clean();
-		$elapsedTime = (microtime(true) - $startTime) * 1000;
+		$elapsedTime = (microtime(TRUE) - $startTime) * 1000;
+		$this->elapsedTime += $elapsedTime;
+		++$this->batchCounter;
 		if ($count > 0) {
-			$this->outputLine('  #%d (%d records in %dms, %d ms per record)', [$partSetting->getCurrentBatch(), $count, $elapsedTime, $elapsedTime / $count]);
+			$this->outputLine('  #%d %d records in %dms, %d ms per record, %d ms per batch (avg)', [$partSetting->getCurrentBatch(), $count, $elapsedTime, $elapsedTime / $count, $this->elapsedTime / $this->batchCounter]);
 		}
 		if ($status !== TRUE) {
 			$this->outputLine("Command '%s' return an error", [ $partSetting->getLabel() ] );
