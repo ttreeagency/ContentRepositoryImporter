@@ -10,7 +10,7 @@ use TYPO3\Flow\Cache\Frontend\VariableFrontend;
 use TYPO3\TYPO3CR\Domain\Model\NodeInterface;
 
 /**
- * String Data Type
+ * Processed Node Definition
  */
 class ProcessedNodeDefinition  {
 
