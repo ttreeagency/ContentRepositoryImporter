@@ -5,6 +5,7 @@ namespace Ttree\ContentRepositoryImporter\Domain\Model;
  * This script belongs to the TYPO3 Flow package "Ttree.ArchitectesCh".   *
  *                                                                        */
 
+use Ttree\ContentRepositoryImporter\DataType\InvalidArgumentException;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Utility\Algorithms;
 
@@ -51,11 +52,21 @@ class PresetPartDefinition  {
 	/**
 	 * @param array $setting
 	 * @param string $logPrefix
+	 * @throws InvalidArgumentException
 	 */
 	public function __construct(array $setting, $logPrefix = NULL) {
-		$this->label = $setting['label'];
-		$this->dataProviderClassName = $setting['dataProviderClassName'];
-		$this->importerClassName = $setting['importerClassName'];
+		if (!isset($setting['label']) || !is_string($setting['label'])) {
+			throw new InvalidArgumentException('Missing or invalid "Label" in preset part settings', 1425892580);
+		}
+		$this->label = (string)$setting['label'];
+		if (!isset($setting['dataProviderClassName']) || !is_string($setting['dataProviderClassName'])) {
+			throw new InvalidArgumentException('Missing or invalid "dataProviderClassName" in preset part settings', 1425892580);
+		}
+		$this->dataProviderClassName = (string)$setting['dataProviderClassName'];
+		if (!isset($setting['importerClassName']) || !is_string($setting['importerClassName'])) {
+			throw new InvalidArgumentException('Missing or invalid "dataProviderClassName" in preset part settings', 1425892580);
+		}
+		$this->importerClassName = (string)$setting['importerClassName'];
 		$this->batchSize = isset($setting['batchSize']) ? (integer)$setting['batchSize'] : NULL;
 		$this->offset = isset($setting['batchSize']) ? 0 : NULL;
 		$this->currentBatch = 1;
