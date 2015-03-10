@@ -72,27 +72,6 @@ abstract class Importer implements ImporterInterface {
 	protected $storageNode;
 
 	/**
-	 * Used as a prototype to avoid creating the object again and again.
-	 *
-	 * @var \DateTime
-	 */
-	protected $publishedDateTime;
-
-	/**
-	 * Used as a prototype to avoid creating the object again and again.
-	 *
-	 * @var \DateTime
-	 */
-	protected $hiddenBeforeDateTime;
-
-	/**
-	 * Used as a prototype to avoid creating the object again and again.
-	 *
-	 * @var \DateTime
-	 */
-	protected $hiddenAfterDateTime;
-
-	/**
 	 * @Flow\Inject(setting="import")
 	 * @var array
 	 */
@@ -102,10 +81,6 @@ abstract class Importer implements ImporterInterface {
 	 * Initialize
 	 */
 	protected function initialize() {
-		$this->publishedDateTime = new \DateTime();
-		$this->hiddenBeforeDateTime = new \DateTime();
-		$this->hiddenAfterDateTime = new \DateTime();
-
 		$this->logPrefix = $this->logPrefix ?: Algorithms::generateRandomString(12);
 
 		$contextConfiguration = ['workspaceName' => 'live', 'invisibleContentShown' => TRUE];
