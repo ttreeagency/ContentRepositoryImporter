@@ -7,13 +7,12 @@ namespace Ttree\ContentRepositoryImporter\DataType;
 
 use Gedmo\Uploadable\MimeType\MimeTypeGuesser;
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Cache\Frontend\VariableFrontend;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Log\SystemLoggerInterface;
-use TYPO3\Flow\Resource\Resource;
 use TYPO3\Flow\Resource\ResourceManager;
 use TYPO3\Flow\Utility\Files;
 use TYPO3\Flow\Utility\MediaTypes;
-use TYPO3\Media\Exception\ImageFileException;
 
 /**
  * String Data Type
@@ -31,6 +30,11 @@ class ExternalResource extends DataType {
 	 * @var ResourceManager
 	 */
 	protected $resourceManager;
+
+	/**
+	 * @var VariableFrontend
+	 */
+	protected $downloadCache;
 
 	/**
 	 * @return Resource
@@ -63,9 +67,10 @@ class ExternalResource extends DataType {
 		}
 		Files::createDirectoryRecursively($this->options['downloadDirectory']);
 		$temporaryFileAndPathname = trim($this->options['downloadDirectory'] . $filename);
+		$sha1Hash = sha1_file($temporaryFileAndPathname);
 
 		# Try to add file extenstion if missing
-		if (!is_file($temporaryFileAndPathname)) {
+		if (!$this->downloadCache->has($sha1Hash)) {
 			$this->download($sourceUri, $temporaryFileAndPathname);
 			$fileExtension = pathinfo($temporaryFileAndPathname, PATHINFO_EXTENSION);
 			if (trim($fileExtension) === '') {
@@ -82,11 +87,17 @@ class ExternalResource extends DataType {
 			}
 		}
 
-		$sha1Hash = sha1_file($temporaryFileAndPathname);
 		$resource = $this->resourceManager->getResourceBySha1($sha1Hash);
 		if ($resource === NULL) {
 			$resource = $this->resourceManager->importResource($temporaryFileAndPathname);
 		}
+
+		$this->downloadCache->set($sha1Hash, [
+			'sha1Hash' => $sha1Hash,
+			'filename' => $filename,
+			'sourceUri' => $sourceUri,
+			'temporaryFileAndPathname' => $temporaryFileAndPathname
+		]);
 
 		$this->value = $resource;
 	}
@@ -106,6 +117,9 @@ class ExternalResource extends DataType {
 	 * @throws Exception
 	 */
 	protected function download($source, $destination, $force = FALSE) {
+		if (is_file($destination)) {
+			return TRUE;
+		}
 		$rh = fopen($source, 'rb');
 		if ($force === FALSE && is_file($destination)) {
 			return TRUE;
