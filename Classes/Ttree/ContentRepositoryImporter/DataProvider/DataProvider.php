@@ -8,6 +8,7 @@ namespace Ttree\ContentRepositoryImporter\DataProvider;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 
@@ -21,6 +22,12 @@ abstract class DataProvider implements DataProviderInterface {
 	 * @var SystemLoggerInterface
 	 */
 	protected $logger;
+
+	/**
+	 * @Flow\Inject
+	 * @var ProcessedNodeService
+	 */
+	protected $processedNodeService;
 
 	/**
 	 * @var Connection
