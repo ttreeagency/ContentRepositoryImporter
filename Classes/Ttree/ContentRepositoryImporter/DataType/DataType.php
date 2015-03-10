@@ -6,11 +6,18 @@ namespace Ttree\ContentRepositoryImporter\DataType;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Configuration\ConfigurationManager;
 
 /**
  * String Data Type
  */
 abstract class DataType implements DataTypeInterface {
+
+	/**
+	 * @Flow\Inject
+	 * @var ConfigurationManager
+	 */
+	protected $configurationManager;
 
 	/**
 	 * @var mixed
@@ -21,6 +28,18 @@ abstract class DataType implements DataTypeInterface {
 	 * @var mixed
 	 */
 	protected $value;
+
+	/**
+	 * @var array
+	 */
+	protected $options;
+
+	/**
+	 * Initialize object
+	 */
+	public function initializeObject() {
+		$this->options = $this->configurationManager->getConfiguration(ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, [ 'TYPO3', 'ContentRepositoryImporter', 'dataTypeOptions', get_called_class()]) ?: array();
+	}
 
 	/**
 	 * @param string $value

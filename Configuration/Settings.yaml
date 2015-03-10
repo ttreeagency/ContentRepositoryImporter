@@ -1,6 +1,11 @@
 ---
-#Ttree:
-#  ContentRepositoryImporter:
+Ttree:
+  ContentRepositoryImporter:
+
+    dataTypeOptions:
+      'Ttree\ContentRepositoryImporter\DataType\ExternalResource':
+        downloadDirectory: '%FLOW_PATH_DATA%Persistent/Ttree.ContentRepositoryImporter/Downloads/'
+
 #    presets:
 #      'base':
 #        'news':
