@@ -31,6 +31,11 @@ class ImportCommandController extends CommandController {
 	protected $cache;
 
 	/**
+	 * @var VariableFrontend
+	 */
+	protected $downloadCache;
+
+	/**
 	 * @Flow\Inject
 	 * @var ConfigurationManager
 	 */
@@ -81,6 +86,7 @@ class ImportCommandController extends CommandController {
 	 */
 	public function flushCacheCommand() {
 		$this->cache->flush();
+		$this->downloadCache->flush();
 	}
 
 	/**
