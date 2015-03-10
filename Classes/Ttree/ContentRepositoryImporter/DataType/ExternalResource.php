@@ -117,14 +117,11 @@ class ExternalResource extends DataType {
 	 * @throws Exception
 	 */
 	protected function download($source, $destination, $force = FALSE) {
-		if (is_file($destination)) {
-			return TRUE;
-		}
-		$rh = fopen($source, 'rb');
 		if ($force === FALSE && is_file($destination)) {
 			return TRUE;
 		}
-		$wh = @fopen($destination, 'w+b');
+		$rh = fopen($source, 'rb');
+		$wh = fopen($destination, 'w+b');
 		if (!$rh || !$wh) {
 			throw new Exception(sprintf('Unable to download the given file: %s', $source));
 		}
