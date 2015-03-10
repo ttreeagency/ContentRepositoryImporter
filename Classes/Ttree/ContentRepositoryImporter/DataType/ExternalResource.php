@@ -67,11 +67,12 @@ class ExternalResource extends DataType {
 		}
 		Files::createDirectoryRecursively($this->options['downloadDirectory']);
 		$temporaryFileAndPathname = trim($this->options['downloadDirectory'] . $filename);
+
+		$this->download($sourceUri, $temporaryFileAndPathname);
 		$sha1Hash = sha1_file($temporaryFileAndPathname);
 
 		# Try to add file extenstion if missing
 		if (!$this->downloadCache->has($sha1Hash)) {
-			$this->download($sourceUri, $temporaryFileAndPathname);
 			$fileExtension = pathinfo($temporaryFileAndPathname, PATHINFO_EXTENSION);
 			if (trim($fileExtension) === '') {
 				$mimeTypeGuesser = new MimeTypeGuesser();
