@@ -112,11 +112,13 @@ abstract class Importer implements ImporterInterface {
 	 */
 	protected function skipNodeProcessing($name, $externalIdentifier, $nodeName, NodeInterface $storageNode, $skipExistingNode = TRUE) {
 		if ($this->getNodeProcessing($externalIdentifier)) {
-			$this->log(sprintf('Skip already processed node "%s" ...', $name), LOG_NOTICE);
+			$this->log(sprintf('- Skip already processed node "%s" ...', $name), LOG_NOTICE);
 			return TRUE;
 		}
-		if ($skipExistingNode === TRUE && $storageNode->getNode($nodeName) !== NULL) {
-			$this->log(sprintf('Skip existing node "%s" ...', $name), LOG_WARNING);
+		$node = $storageNode->getNode($nodeName);
+		if ($skipExistingNode === TRUE && !$node instanceof NodeInterface) {
+			$this->log(sprintf('- Skip existing node "%s" ...', $name), LOG_WARNING);
+			$this->registerNodeProcessing($node, $externalIdentifier);
 			return TRUE;
 		}
 
