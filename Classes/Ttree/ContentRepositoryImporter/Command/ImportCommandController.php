@@ -13,6 +13,7 @@ use TYPO3\Flow\Cache\Frontend\VariableFrontend;
 use TYPO3\Flow\Cli\CommandController;
 use TYPO3\Flow\Configuration\ConfigurationManager;
 use TYPO3\Flow\Core\Booting\Scripts;
+use TYPO3\Flow\Log\SystemLoggerInterface;
 use TYPO3\Flow\Object\ObjectManagerInterface;
 use TYPO3\Flow\Utility\Algorithms;
 use TYPO3\Flow\Utility\Arrays;
@@ -40,6 +41,12 @@ class ImportCommandController extends CommandController {
 	 * @var ObjectManagerInterface
 	 */
 	protected $objectManager;
+
+	/**
+	 * @Flow\Inject
+	 * @var SystemLoggerInterface
+	 */
+	protected $logger;
 
 	/**
 	 * @Flow\Inject
@@ -147,15 +154,20 @@ class ImportCommandController extends CommandController {
 	 * @Flow\Internal
 	 */
 	public function executeBatchCommand($dataProviderClassName, $importerClassName, $logPrefix, $offset = NULL, $batchSize = NULL) {
-		/** @var DataProvider $dataProvider */
-		$dataProvider = $dataProviderClassName::create($offset, $batchSize);
+		try {
+			/** @var DataProvider $dataProvider */
+			$dataProvider = $dataProviderClassName::create($offset, $batchSize);
 
-		/** @var Importer $importer */
-		$importer = $this->objectManager->get($importerClassName);
-		$importer->setLogPrefix($logPrefix);
-		$importer->import($dataProvider);
+			/** @var Importer $importer */
+			$importer = $this->objectManager->get($importerClassName);
+			$importer->setLogPrefix($logPrefix);
+			$importer->import($dataProvider);
 
-		$this->output($dataProvider->getCount());
+			$this->output($dataProvider->getCount());
+		} catch (\Exception $exception) {
+			$this->logger->logException($exception);
+			$this->quit(1);
+		}
 	}
 
 	/**
