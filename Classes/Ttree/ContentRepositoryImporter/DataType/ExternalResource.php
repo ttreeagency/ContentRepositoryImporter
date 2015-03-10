@@ -76,13 +76,13 @@ class ExternalResource extends DataType {
 			if (trim($fileExtension) === '') {
 				$mimeTypeGuesser = new MimeTypeGuesser();
 				$mimeType = $mimeTypeGuesser->guess($temporaryFileAndPathname);
-				$this->logger->log(sprintf('Try to guess mime type for "%s" (%s), result: %s', $sourceUri, $filename, $mimeType), LOG_WARNING);
+				$this->logger->log(sprintf('Try to guess mime type for "%s" (%s), result: %s', $sourceUri, $filename, $mimeType), LOG_DEBUG);
 				$fileExtension = MediaTypes::getFilenameExtensionFromMediaType($mimeType);
 				if ($fileExtension !== '') {
 					$oldTemporaryDestination = $temporaryFileAndPathname;
 					$temporaryDestination = $temporaryFileAndPathname . '.' . $fileExtension;
 					copy($oldTemporaryDestination, $temporaryDestination);
-					$this->logger->log(sprintf('Rename "%s" to "%s"', $oldTemporaryDestination, $temporaryDestination), LOG_WARNING);
+					$this->logger->log(sprintf('Rename "%s" to "%s"', $oldTemporaryDestination, $temporaryDestination), LOG_DEBUG);
 				}
 			}
 		}
