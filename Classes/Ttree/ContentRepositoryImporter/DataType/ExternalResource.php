@@ -58,6 +58,9 @@ class ExternalResource extends DataType {
 		}
 		$filename = trim($value['filename']);
 
+		if (!isset($this->options['downloadDirectory'])) {
+			throw new Exception('Missing download directory data type option', 1425981085);
+		}
 		Files::createDirectoryRecursively($this->options['downloadDirectory']);
 		$temporaryFileAndPathname = trim($this->options['downloadDirectory'] . $filename);
 
