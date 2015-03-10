@@ -1,9 +1,9 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Command;
 
-/*                                                                                    *
- * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter".   *
- *                                                                                    */
+/*                                                                                  *
+ * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
+ *                                                                                  */
 
 use Ttree\ContentRepositoryImporter\DataProvider\DataProvider;
 use Ttree\ContentRepositoryImporter\Domain\Model\PresetPartDefinition;

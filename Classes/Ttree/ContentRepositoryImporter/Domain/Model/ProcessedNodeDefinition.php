@@ -1,12 +1,11 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Domain\Model;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow package "Ttree.ArchitectesCh".   *
- *                                                                        */
+/*                                                                                  *
+ * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
+ *                                                                                  */
 
 use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Cache\Frontend\VariableFrontend;
 use TYPO3\TYPO3CR\Domain\Model\NodeInterface;
 
 /**

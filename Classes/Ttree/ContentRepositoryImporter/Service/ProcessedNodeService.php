@@ -1,9 +1,9 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Service;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow package "Ttree.ArchitectesCh".   *
- *                                                                        */
+/*                                                                                  *
+ * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
+ *                                                                                  */
 
 use Ttree\ContentRepositoryImporter\Domain\Model\ProcessedNodeDefinition;
 use TYPO3\Flow\Annotations as Flow;

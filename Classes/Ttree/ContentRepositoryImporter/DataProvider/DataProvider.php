@@ -1,9 +1,9 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\DataProvider;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow package "Ttree.ArchitectesCh".   *
- *                                                                        */
+/*                                                                                  *
+ * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
+ *                                                                                  */
 
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
