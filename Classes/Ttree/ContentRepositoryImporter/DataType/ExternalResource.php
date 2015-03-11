@@ -97,9 +97,9 @@ class ExternalResource extends DataType {
 		$resource = $this->resourceManager->getResourceBySha1($sha1Hash);
 		if ($resource === NULL) {
 			$resource = $this->resourceManager->importResource($temporaryFileAndPathname);
-		}
-		if ($filename !== $overrideFilename) {
-			$resource->setFilename($overrideFilename);
+			if ($filename !== $overrideFilename) {
+				$resource->setFilename($overrideFilename);
+			}
 		}
 
 		$this->temporaryFileAndPathname = $temporaryFileAndPathname;
