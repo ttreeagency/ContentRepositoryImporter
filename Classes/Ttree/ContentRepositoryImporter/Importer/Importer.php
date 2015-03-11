@@ -110,8 +110,8 @@ abstract class Importer implements ImporterInterface {
 	 * @param boolean $skipExistingNode
 	 * @return boolean
 	 */
-	protected function skipNodeProcessing($name, $externalIdentifier, $nodeName, NodeInterface $storageNode, $skipExistingNode = TRUE) {
-		if ($this->getNodeProcessing($externalIdentifier)) {
+	protected function skipNodeProcessing($name, $externalIdentifier, $nodeName, NodeInterface $storageNode, $skipExistingNode = TRUE, $skipAlreadyProcessed = TRUE) {
+		if ($skipAlreadyProcessed === TRUE && $this->getNodeProcessing($externalIdentifier)) {
 			$this->log(sprintf('- Skip already processed node "%s" ...', $name), LOG_NOTICE);
 			return TRUE;
 		}
