@@ -37,6 +37,11 @@ class ExternalResource extends DataType {
 	protected $downloadCache;
 
 	/**
+	 * @var string
+	 */
+	protected $temporaryFileAndPathname;
+
+	/**
 	 * @return Resource
 	 */
 	public function getValue() {
@@ -93,6 +98,8 @@ class ExternalResource extends DataType {
 			$resource = $this->resourceManager->importResource($temporaryFileAndPathname);
 		}
 
+		$this->temporaryFileAndPathname = $temporaryFileAndPathname;
+
 		$this->downloadCache->set($sha1Hash, [
 			'sha1Hash' => $sha1Hash,
 			'filename' => $filename,
@@ -101,6 +108,13 @@ class ExternalResource extends DataType {
 		]);
 
 		$this->value = $resource;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getTemporaryFileAndPathname() {
+		return $this->temporaryFileAndPathname;
 	}
 
 	/**
@@ -121,20 +135,19 @@ class ExternalResource extends DataType {
 		if ($force === FALSE && is_file($destination)) {
 			return TRUE;
 		}
-		$rh = fopen($source, 'rb');
-		$wh = fopen($destination, 'w+b');
-		if (!$rh || !$wh) {
+		$fp = fopen($destination, 'w+');
+		if (!$fp) {
 			throw new Exception(sprintf('Unable to download the given file: %s', $source));
 		}
 
-		while (!feof($rh)) {
-			if (fwrite($wh, fread($rh, 4096)) === FALSE) {
-				throw new Exception(sprintf('Unable to download the given file: %s', $source));
-			}
-		}
+		$ch = curl_init(str_replace(" ","%20",$source));
+		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+		curl_setopt($ch, CURLOPT_FILE, $fp);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_exec($ch);
+		curl_close($ch);
 
-		fclose($rh);
-		fclose($wh);
+		fclose($fp);
 
 		return TRUE;
 	}
