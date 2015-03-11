@@ -66,6 +66,7 @@ class ExternalResource extends DataType {
 			throw new Exception('Missing filename URI', 1425981084);
 		}
 		$filename = trim($value['filename']);
+		$overrideFilename = isset($value['overrideFilename']) ? trim($value['overrideFilename']) : $filename;
 
 		if (!isset($this->options['downloadDirectory'])) {
 			throw new Exception('Missing download directory data type option', 1425981085);
@@ -96,6 +97,9 @@ class ExternalResource extends DataType {
 		$resource = $this->resourceManager->getResourceBySha1($sha1Hash);
 		if ($resource === NULL) {
 			$resource = $this->resourceManager->importResource($temporaryFileAndPathname);
+		}
+		if ($filename !== $overrideFilename) {
+			$resource->setFilename($overrideFilename);
 		}
 
 		$this->temporaryFileAndPathname = $temporaryFileAndPathname;
