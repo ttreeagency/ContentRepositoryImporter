@@ -6,6 +6,7 @@ namespace Ttree\ContentRepositoryImporter\DataType;
  *                                                                                  */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Utility\Arrays;
 
 /**
  * String Data Type
@@ -21,12 +22,14 @@ class HtmlContent extends DataType {
 		$value = trim($value);
 
 		$config = \HTMLPurifier_Config::createDefault();
-		$config->set('HTML.AllowedElements', 'a,em,i,strong,b,blockquote,p,ul,ol,li');
-		$config->set('HTML.AllowedAttributes', 'a.href,a.title');
-		$config->set('HTML.TidyLevel', 'light');
+		$options = Arrays::getValueByPath($this->options, 'htmlPurifierOptions') ?: [];
+		foreach ($options as $optionName => $optionValue) {
+			$config->set($optionName, $optionValue);
+		}
 		$purifier = new \HTMLPurifier($config);
 		$value = $purifier->purify($value);
 
+		// Todo add options in data type settings
 		$value = str_replace([
 			'<ul>',
 			'</ul>',
@@ -41,30 +44,34 @@ class HtmlContent extends DataType {
 			' '
 		], $value);
 
-		$value = preg_replace([
-			'#\[b\](.+)\[/b\]#i',
-			'#\[i\](.+)\[/i\]#i',
-			"/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/"
-		], [
-			'<strong>$1</strong>',
-			'<em>$1</em>',
-			"\n"
-		], $value);
+		// Normalize tag
+		$options = Arrays::getValueByPath($this->options, 'preProcessing') ?: [];
+		if (count($options)) {
+			$value = preg_replace(array_keys($options), array_values($options), $value);
+		}
 
+		// Process line per line
 		$lines = preg_split("/\\r\\n|\\r|\\n/", $value);
 		foreach ($lines as $key => $line) {
-			# TODO Check for side effect
 			$line = trim($line);
-			$lines[$key] = preg_replace('#^<b>(.+)</b>$#', '<h3>$1</h3>', $line);
+			$options = Arrays::getValueByPath($this->options, 'processingPerLine') ?: [];
+			if (count($options)) {
+				$lines[$key] = preg_replace(array_keys($options), array_values($options), $line);
+			}
 		}
-		$value = implode(PHP_EOL, $lines);
+		$value = implode(' ' . PHP_EOL, $lines);
 
-		$value = preg_replace('#^(?!.*?(?:<.*ul>|<.*li>|<.*ol>|<.*h.*>))(.+)$#uim', '<p>$1</p>', $value);
+		// Global post processing
+		$options = Arrays::getValueByPath($this->options, 'postProcessing') ?: [];
+		if (count($options)) {
+			$value = preg_replace(array_keys($options), array_values($options), $value);
+		}
+
+		// Return everything on one line
 		$value = str_replace(PHP_EOL, '', $value);
 
-		$value = new String($value);
-
-		$this->value = $value->getValue();
+		// Remove duplicated space and trim
+		$this->value = trim(preg_replace('/\s+/u', ' ', $value));
 	}
 
 }

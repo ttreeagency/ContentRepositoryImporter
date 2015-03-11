@@ -6,6 +6,20 @@ Ttree:
       'Ttree\ContentRepositoryImporter\DataType\ExternalResource':
         downloadDirectory: '%FLOW_PATH_DATA%Persistent/Ttree.ContentRepositoryImporter/Downloads/'
 
+      'Ttree\ContentRepositoryImporter\DataType\HtmlContent':
+        htmlPurifierOptions:
+          'HTML.AllowedElements': 'a,em,i,strong,b,blockquote,p,ul,ol,li'
+          'HTML.AllowedAttributes': 'a.href,a.title'
+          'HTML.TidyLevel': 'light'
+        preProcessing:
+          '#\[b\](.+)\[/b\]#i': '<strong>$1</strong>'
+          '#\[i\](.+)\[/i\]#i': '<em>$1</em>'
+          '/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/': '\n'
+        processingPerLine:
+          '#^<b>(.+)</b>$#': '<h3>$1</h3>'
+        postProcessing:
+          '#^(?!.*?(?:<.*ul>|<.*li>|<.*ol>|<.*h.*>))(.+)$#uim': '<p>$1</p>'
+
 #    presets:
 #      'base':
 #        'news':
