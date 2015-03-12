@@ -69,24 +69,32 @@ performance issue for big import.
 ```yaml
 Ttree:
   ContentRepositoryImporter:
+    sources:
+      default:
+        host: localhost
+        driver: pdo_mysql
+        dbname: database
+        user: user
+        password: password
+      extraSourceDatabase:
+        host: localhost
+        driver: pdo_mysql
+        dbname: database
+        user: user
+        password: password
+
     presets:
       'base':
         'news':
           label: 'News Import'
           dataProviderClassName: 'Your\Package\Importer\DataProvider\NewsDataProvider'
           importerClassName: 'Your\Package\Importer\Importer\NewsImporter'
-
         'page':
           label: 'Page Import'
           dataProviderClassName: 'Your\Package\Importer\DataProvider\PageDataProvider'
           dataProviderOptions:
+            source: 'extraSourceDatabase'
             someOption: 'Some option that will be available in the options property of the data provider'
-            database:
-              host: localhost
-              driver: pdo_mysql
-              dbname: database
-              user: user
-              password: password
           importerClassName: 'Your\Package\Importer\Importer\PageImporter'
           importerOptions:
             siteNodePath: '/my-site'
