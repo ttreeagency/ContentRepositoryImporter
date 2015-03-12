@@ -2,6 +2,14 @@
 Ttree:
   ContentRepositoryImporter:
 
+    sources:
+      default:
+        driver: 'pdo_mysql'
+        dbname: ''
+        host: '127.0.0.1'
+        user: ''
+        password: ''
+
     dataTypeOptions:
       'Ttree\ContentRepositoryImporter\DataType\ExternalResource':
         downloadDirectory: '%FLOW_PATH_DATA%Persistent/Ttree.ContentRepositoryImporter/Downloads/'

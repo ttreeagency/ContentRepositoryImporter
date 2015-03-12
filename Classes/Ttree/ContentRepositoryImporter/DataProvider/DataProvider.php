@@ -30,9 +30,9 @@ abstract class DataProvider implements DataProviderInterface {
 	protected $processedNodeService;
 
 	/**
-	 * @var Connection
+	 * @var array<Connection>
 	 */
-	protected $connection;
+	protected $connections = [];
 
 	/**
 	 * @var integer
@@ -129,14 +129,16 @@ abstract class DataProvider implements DataProviderInterface {
 
 	/**
 	 * @return Connection
-	 * @throws \Doctrine\DBAL\DBALException
+	 * @throws \Exception
 	 */
 	protected function getDatabaseConnection() {
-		if ($this->connection instanceof Connection) {
-			return $this->connection;
+		$sourceName = isset($this->options['source']) ? $this->options['source'] : 'default';
+
+		if (isset($this->connections[$sourceName]) && $this->connections[$sourceName] instanceof Connection) {
+			return $this->connections[$sourceName];
 		}
 
-		$this->connection = DriverManager::getConnection($this->options['database'], new Configuration());
-		return $this->connection;
+		$this->connections[$sourceName] = DriverManager::getConnection($this->settings['sources'][$sourceName], new Configuration());
+		return $this->connections[$sourceName];
 	}
 }
