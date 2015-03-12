@@ -136,7 +136,7 @@ abstract class DataProvider implements DataProviderInterface {
 			return $this->connection;
 		}
 
-		$this->connection = DriverManager::getConnection($this->configuration['database'], new Configuration());
+		$this->connection = DriverManager::getConnection($this->options['database'], new Configuration());
 		return $this->connection;
 	}
 }

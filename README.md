@@ -81,6 +81,12 @@ Ttree:
           dataProviderClassName: 'Your\Package\Importer\DataProvider\PageDataProvider'
           dataProviderOptions:
             someOption: 'Some option that will be available in the options property of the data provider'
+            database:
+              host: localhost
+              driver: pdo_mysql
+              dbname: database
+              user: user
+              password: password
           importerClassName: 'Your\Package\Importer\Importer\PageImporter'
           importerOptions:
             someOption: 'Some option that will be available in the options property of the importer'
