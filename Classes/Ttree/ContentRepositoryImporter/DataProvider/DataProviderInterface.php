@@ -13,11 +13,12 @@ use TYPO3\Flow\Annotations as Flow;
 interface DataProviderInterface {
 
 	/**
+	 * @param array $options
 	 * @param integer $offset
 	 * @param integer $limit
 	 * @return DataProviderInterface
 	 */
-	public static function create($offset = NULL, $limit = NULL);
+	public static function create(array $options = [], $offset = NULL, $limit = NULL);
 
 	/**
 	 * @return array

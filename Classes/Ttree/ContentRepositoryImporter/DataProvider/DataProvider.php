@@ -35,12 +35,6 @@ abstract class DataProvider implements DataProviderInterface {
 	protected $connection;
 
 	/**
-	 * @Flow\Inject(setting="import")
-	 * @var array
-	 */
-	protected $configuration = [];
-
-	/**
 	 * @var integer
 	 */
 	protected $offset;
@@ -56,14 +50,33 @@ abstract class DataProvider implements DataProviderInterface {
 	protected $count = 0;
 
 	/**
+	 * @Flow\InjectConfiguration(package="Ttree.ContentRepositoryImporter")
+	 * @var array
+	 */
+	protected $settings;
+
+	/**
+	 * @var array
+	 */
+	protected $options = [];
+
+	/**
+	 * @param array $options
+	 */
+	public function __construct(array $options) {
+		$this->options = $options;
+	}
+
+	/**
+	 * @param array $options
 	 * @param integer $offset
 	 * @param integer $limit
 	 * @return DataProviderInterface
 	 */
-	public static function create($offset = NULL, $limit = NULL) {
+	public static function create(array $options = [], $offset = NULL, $limit = NULL) {
 		$class = get_called_class();
 		/** @var DataProviderInterface $dataProvider */
-		$dataProvider = new $class();
+		$dataProvider = new $class($options);
 		$dataProvider->setOffset($offset);
 		$dataProvider->setLimit($limit);
 

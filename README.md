@@ -79,6 +79,8 @@ Ttree:
         'page':
           label: 'Page Import'
           dataProviderClassName: 'Your\Package\Importer\DataProvider\PageDataProvider'
+          dataProviderOptions:
+            someOption: 'Some option that will be available in the options property of the data provider'
           importerClassName: 'Your\Package\Importer\Importer\PageImporter'
           batchSize': 120
 

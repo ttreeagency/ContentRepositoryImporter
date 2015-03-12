@@ -17,6 +17,16 @@ class PresetPartDefinition  {
 	/**
 	 * @var string
 	 */
+	protected $currentPresetName;
+
+	/**
+	 * @var string
+	 */
+	protected $currentPartName;
+
+	/**
+	 * @var string
+	 */
 	protected $label;
 
 	/**
@@ -28,6 +38,11 @@ class PresetPartDefinition  {
 	 * @var string
 	 */
 	protected $dataProviderClassName;
+
+	/**
+	 * @var array
+	 */
+	protected $dataProviderOptions;
 
 	/**
 	 * @var string
@@ -55,20 +70,29 @@ class PresetPartDefinition  {
 	 * @throws InvalidArgumentException
 	 */
 	public function __construct(array $setting, $logPrefix = NULL) {
+		if (!isset($setting['__currentPresetName'])) {
+			throw new InvalidArgumentException('Missing or invalid "__currentPresetName" in preset part settings', 1426156156);
+		}
+		$this->currentPresetName = $setting['__currentPresetName'];
+		if (!isset($setting['__currentPartName'])) {
+			throw new InvalidArgumentException('Missing or invalid "__currentPartName" in preset part settings', 1426156155);
+		}
+		$this->currentPartName = $setting['__currentPartName'];
 		if (!isset($setting['label']) || !is_string($setting['label'])) {
-			throw new InvalidArgumentException('Missing or invalid "Label" in preset part settings', 1425892580);
+			throw new InvalidArgumentException('Missing or invalid "Label" in preset part settings', 1426156157);
 		}
 		$this->label = (string)$setting['label'];
 		if (!isset($setting['dataProviderClassName']) || !is_string($setting['dataProviderClassName'])) {
-			throw new InvalidArgumentException('Missing or invalid "dataProviderClassName" in preset part settings', 1425892580);
+			throw new InvalidArgumentException('Missing or invalid "dataProviderClassName" in preset part settings', 1426156158);
 		}
 		$this->dataProviderClassName = (string)$setting['dataProviderClassName'];
 		if (!isset($setting['importerClassName']) || !is_string($setting['importerClassName'])) {
-			throw new InvalidArgumentException('Missing or invalid "dataProviderClassName" in preset part settings', 1425892580);
+			throw new InvalidArgumentException('Missing or invalid "dataProviderClassName" in preset part settings', 1426156159);
 		}
 		$this->importerClassName = (string)$setting['importerClassName'];
 		$this->batchSize = isset($setting['batchSize']) ? (integer)$setting['batchSize'] : NULL;
 		$this->offset = isset($setting['batchSize']) ? 0 : NULL;
+		$this->dataProviderOptions = isset($setting['dataProviderOptions']) ? $setting['dataProviderOptions'] : [];
 		$this->currentBatch = 1;
 		$this->logPrefix = $logPrefix ?: Algorithms::generateRandomString(12);
 	}
@@ -86,6 +110,8 @@ class PresetPartDefinition  {
 	 */
 	public function getCommandArguments() {
 		$arguments = [
+			'presetName' => $this->currentPresetName,
+			'partName' => $this->currentPartName,
 			'logPrefix' => $this->logPrefix,
 			'dataProviderClassName' => $this->dataProviderClassName,
 			'importerClassName' => $this->importerClassName,
