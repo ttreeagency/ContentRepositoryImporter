@@ -89,6 +89,7 @@ Ttree:
               password: password
           importerClassName: 'Your\Package\Importer\Importer\PageImporter'
           importerOptions:
+            siteNodePath: '/my-site'
             someOption: 'Some option that will be available in the options property of the importer'
           batchSize': 120
 
