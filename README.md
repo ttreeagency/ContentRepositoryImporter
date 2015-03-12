@@ -82,6 +82,8 @@ Ttree:
           dataProviderOptions:
             someOption: 'Some option that will be available in the options property of the data provider'
           importerClassName: 'Your\Package\Importer\Importer\PageImporter'
+          importerOptions:
+            someOption: 'Some option that will be available in the options property of the importer'
           batchSize': 120
 
         'pageContent':

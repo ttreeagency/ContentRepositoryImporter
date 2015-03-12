@@ -171,8 +171,9 @@ class ImportCommandController extends CommandController {
 			/** @var DataProvider $dataProvider */
 			$dataProvider = $dataProviderClassName::create(is_array($dataProviderOptions) ? $dataProviderOptions : [], $offset, $batchSize);
 
+			$importerOptions = Arrays::getValueByPath($this->settings, ['presets', $presetName, $partName, 'importerOptions']);
 			/** @var Importer $importer */
-			$importer = $this->objectManager->get($importerClassName);
+			$importer = $this->objectManager->get($importerClassName, is_array($importerOptions) ? $importerOptions : []);
 			$importer->setLogPrefix($logPrefix);
 			$importer->import($dataProvider);
 
