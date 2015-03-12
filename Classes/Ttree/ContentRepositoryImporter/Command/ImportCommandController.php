@@ -105,11 +105,15 @@ class ImportCommandController extends CommandController {
 			$this->outputLine(sprintf('Preset "%s" not found ...', $preset));
 			$this->quit(1);
 		}
-		array_walk($presetSettings, function ($partSetting, $partName) use ($logPrefix, $parts) {
+		array_walk($presetSettings, function ($partSetting, $partName) use ($preset, $logPrefix, $parts) {
 			$this->elapsedTime = 0;
 			$this->batchCounter = 0;
 			$this->outputLine();
 			$this->outputFormatted(sprintf('<b>%s</b>', $partSetting['label']));
+
+			$partSetting['__currentPresetName'] = $preset;
+			$partSetting['__currentPartName'] = $partName;
+
 			$partSetting = new PresetPartDefinition($partSetting, $logPrefix);
 			if ($parts !== array() && !in_array($partName, $parts)) {
 				$this->outputLine('Skipped');
@@ -151,6 +155,8 @@ class ImportCommandController extends CommandController {
 	}
 
 	/**
+	 * @param string $presetName
+	 * @param string $partName
 	 * @param string $dataProviderClassName
 	 * @param string $importerClassName
 	 * @param string $logPrefix
@@ -159,13 +165,15 @@ class ImportCommandController extends CommandController {
 	 * @return integer
 	 * @Flow\Internal
 	 */
-	public function executeBatchCommand($dataProviderClassName, $importerClassName, $logPrefix, $offset = NULL, $batchSize = NULL) {
+	public function executeBatchCommand($presetName, $partName, $dataProviderClassName, $importerClassName, $logPrefix, $offset = NULL, $batchSize = NULL) {
 		try {
+			$dataProviderOptions = Arrays::getValueByPath($this->settings, implode('.', ['presets', $presetName, $partName, 'dataProviderOptions']));
 			/** @var DataProvider $dataProvider */
-			$dataProvider = $dataProviderClassName::create($offset, $batchSize);
+			$dataProvider = $dataProviderClassName::create(is_array($dataProviderOptions) ? $dataProviderOptions : [], $offset, $batchSize);
 
+			$importerOptions = Arrays::getValueByPath($this->settings, ['presets', $presetName, $partName, 'importerOptions']);
 			/** @var Importer $importer */
-			$importer = $this->objectManager->get($importerClassName);
+			$importer = $this->objectManager->get($importerClassName, is_array($importerOptions) ? $importerOptions : []);
 			$importer->setLogPrefix($logPrefix);
 			$importer->import($dataProvider);
 

@@ -72,10 +72,22 @@ abstract class Importer implements ImporterInterface {
 	protected $storageNode;
 
 	/**
-	 * @Flow\Inject(setting="import")
+	 * @Flow\InjectConfiguration(package="Ttree.ContentRepositoryImporter")
 	 * @var array
 	 */
-	protected $configuration = [];
+	protected $settings;
+
+	/**
+	 * @var array
+	 */
+	protected $options = [];
+
+	/**
+	 * @param array $options
+	 */
+	public function __construct(array $options) {
+		$this->options = $options;
+	}
 
 	/**
 	 * Initialize
@@ -87,8 +99,7 @@ abstract class Importer implements ImporterInterface {
 		$context = $this->contextFactory->create($contextConfiguration);
 		$this->rootNode = $context->getRootNode();
 
-		# Todo add configuration to set site node
-		$siteNodePath = 'sites/architectesch';
+		$siteNodePath = $this->options['siteNodePath'];
 		$this->siteNode = $this->rootNode->getNode($siteNodePath);
 		if ($this->siteNode === NULL) {
 			throw new Exception(sprintf('Site node not found (%s)', $siteNodePath), 1425077201);
