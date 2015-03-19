@@ -92,6 +92,11 @@ class ExternalResource extends DataType {
 					$this->logger->log(sprintf('Rename "%s" to "%s"', $oldTemporaryDestination, $temporaryFileAndPathname), LOG_DEBUG);
 				}
 			}
+			# Trim border
+			if (isset($value['trimBorder']) && $value['trimBorder'] === TRUE) {
+				$this->trimImageBorder($temporaryFileAndPathname);
+				$sha1Hash = sha1_file($temporaryFileAndPathname);
+			}
 		}
 
 		$resource = $this->resourceManager->getResourceBySha1($sha1Hash);
@@ -112,6 +117,18 @@ class ExternalResource extends DataType {
 		]);
 
 		$this->value = $resource;
+	}
+
+	/**
+	 * @param string $fileAndPathname
+	 */
+	protected function trimImageBorder($fileAndPathname) {
+		$isImage = getimagesize($fileAndPathname) ? TRUE : FALSE;
+		if (!$isImage) {
+			return;
+		}
+		$command = sprintf('convert "%s" -trim "%s" > /dev/null 2> /dev/null', $fileAndPathname, $fileAndPathname);
+		exec($command, $output, $result);
 	}
 
 	/**
