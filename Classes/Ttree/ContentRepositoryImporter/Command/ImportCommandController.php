@@ -14,6 +14,7 @@ use TYPO3\Flow\Cache\Frontend\VariableFrontend;
 use TYPO3\Flow\Cli\CommandController;
 use TYPO3\Flow\Configuration\ConfigurationManager;
 use TYPO3\Flow\Core\Booting\Scripts;
+use TYPO3\Flow\Exception;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 use TYPO3\Flow\Object\ObjectManagerInterface;
 use TYPO3\Flow\Utility\Arrays;
@@ -148,25 +149,31 @@ class ImportCommandController extends CommandController {
 	 * @return integer
 	 */
 	protected function executeCommand(PresetPartDefinition $partSetting) {
-		$this->importService->addEvent(sprintf('%s:Started', $partSetting->getEventType()), NULL, $partSetting->getCommandArguments());
-		$this->importService->persisteEvents();
-		$startTime = microtime(TRUE);
-		ob_start();
-		$status = Scripts::executeCommand('ttree.contentrepositoryimporter:import:executebatch', $this->getFlowSettings(), TRUE, $partSetting->getCommandArguments());
-		$count = (integer)ob_get_clean();
-		$elapsedTime = (microtime(TRUE) - $startTime) * 1000;
-		$this->elapsedTime += $elapsedTime;
-		++$this->batchCounter;
-		if ($count > 0) {
-			$this->outputLine('  #%d %d records in %dms, %d ms per record, %d ms per batch (avg)', [$partSetting->getCurrentBatch(), $count, $elapsedTime, $elapsedTime / $count, $this->elapsedTime / $this->batchCounter]);
-		}
-		if ($status !== TRUE) {
-			$this->outputLine("Command '%s' return an error", [$partSetting->getLabel()]);
+		try {
+			$this->importService->addEvent(sprintf('%s:Started', $partSetting->getEventType()), NULL, $partSetting->getCommandArguments());
+			$this->importService->persisteEntities();
+			$startTime = microtime(TRUE);
+			ob_start();
+			$status = Scripts::executeCommand('ttree.contentrepositoryimporter:import:executebatch', $this->getFlowSettings(), TRUE, $partSetting->getCommandArguments());
+			$count = (integer)ob_get_clean();
+			$elapsedTime = (microtime(TRUE) - $startTime) * 1000;
+			$this->elapsedTime += $elapsedTime;
+			++$this->batchCounter;
+			if ($count > 0) {
+				$this->outputLine('  #%d %d records in %dms, %d ms per record, %d ms per batch (avg)', [$partSetting->getCurrentBatch(), $count, $elapsedTime, $elapsedTime / $count, $this->elapsedTime / $this->batchCounter]);
+				$this->importService->addEvent(sprintf('%s:Ended', $partSetting->getEventType()), NULL, $partSetting->getCommandArguments());
+				$this->importService->persisteEntities();
+			}
+			if ($status !== TRUE) {
+				throw new Exception('Sub command failed', 1426767159);
+			}
+			return $count;
+		} catch (\Exception $exception) {
+			$this->logger->logException($exception);
+			$this->outputLine("Error, please check your logs ...", [$partSetting->getLabel()]);
+			$this->importService->addEvent(sprintf('%s:Failed', $partSetting->getEventType()), NULL, $partSetting->getCommandArguments());
 			$this->quit(1);
 		}
-		$this->importService->addEvent(sprintf('%s:Ended', $partSetting->getEventType()), NULL, $partSetting->getCommandArguments());
-		$this->importService->persisteEvents();
-		return $count;
 	}
 
 	/**
