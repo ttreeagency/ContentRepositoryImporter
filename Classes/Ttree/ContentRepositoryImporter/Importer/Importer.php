@@ -164,9 +164,9 @@ abstract class Importer implements ImporterInterface {
 	 * @param NodeTemplate $nodeTemplate
 	 */
 	protected function processBatch(NodeTemplate $nodeTemplate = NULL) {
-		foreach ($this->dataProvider->fetch() as $data) {
+		array_walk($this->dataProvider->fetch(), function ($data) use ($nodeTemplate) {
 			$this->processRecord($nodeTemplate, $data);
-		}
+		});
 	}
 
 	/**
