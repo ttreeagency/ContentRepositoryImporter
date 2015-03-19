@@ -22,7 +22,6 @@ Ttree:
         preProcessing:
           '#\[b\](.+)\[/b\]#i': '<strong>$1</strong>'
           '#\[i\](.+)\[/i\]#i': '<em>$1</em>'
-          '/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/': '\n'
         processingPerLine:
           '#^<b>(.+)</b>$#': '<h3>$1</h3>'
         postProcessing:
