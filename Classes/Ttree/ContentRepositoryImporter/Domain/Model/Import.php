@@ -62,7 +62,6 @@ class Import  {
 		if (is_array($data) && isset($data['__message'])) {
 			$message = $parentEvent ? sprintf('- %s', $data['__message']) : $data['__message'];
 			$this->logger->log($message, isset($data['__severity']) ? (integer)$data['__severity'] : LOG_INFO);
-			unset($data['__message'], $data['__severity']);
 		}
 		$event = new Event($eventType, $data, NULL, $parentEvent);
 		$event->setExternalIdentifier($externalIdentifier);
