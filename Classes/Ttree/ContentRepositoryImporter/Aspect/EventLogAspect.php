@@ -10,6 +10,7 @@ use Ttree\ContentRepositoryImporter\Importer\ImporterInterface;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\AOP\JoinPointInterface;
 use TYPO3\Flow\Utility\Arrays;
+use TYPO3\TYPO3CR\Domain\Repository\NodeDataRepository;
 
 /**
  * Aspect to automatically handle EventLog in Importer object
@@ -23,6 +24,12 @@ class EventLogAspect {
 	 * @var ImportService
 	 */
 	protected $importService;
+
+	/**
+	 * @Flow\Inject
+	 * @var NodeDataRepository
+	 */
+	protected $nodeDataRepository;
 
 	/**
 	 * Add batch started event
@@ -81,6 +88,7 @@ class EventLogAspect {
 	 */
 	public function flushEvents(JoinPointInterface $joinPoint) {
 		$this->importService->persisteEntities();
+		$this->nodeDataRepository->persistEntities();
 	}
 
 	/**
