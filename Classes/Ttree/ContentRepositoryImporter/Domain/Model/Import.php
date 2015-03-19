@@ -102,6 +102,13 @@ class Import  {
 	}
 
 	/**
+	 * @return integer
+	 */
+	public function getElapsedTime() {
+		return (integer) $this->end->getTimestamp() - $this->start->getTimestamp();
+	}
+
+	/**
 	 * @throws Exception
 	 */
 	public function end() {

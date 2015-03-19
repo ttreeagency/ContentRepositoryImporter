@@ -134,9 +134,13 @@ class ImportCommandController extends CommandController {
 			}
 		});
 
+		$this->importService->stop();
+		$import = $this->importService->getLastImport();
 		$this->outputLine();
 		$this->outputLine('Import finished');
-		$this->importService->stop();
+		$this->outputLine(sprintf('  Started   %s', $import->getStart()->format(DATE_RFC2822)));
+		$this->outputLine(sprintf('  Finished  %s', $import->getEnd()->format(DATE_RFC2822)));
+		$this->outputLine(sprintf('  Runtime   %d seconds', $import->getElapsedTime()));
 	}
 
 	/**

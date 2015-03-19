@@ -36,6 +36,11 @@ class ImportService  {
 	protected $currentImport;
 
 	/**
+	 * @var Import
+	 */
+	protected $lastImport;
+
+	/**
 	 * @param string $identifier
 	 * @throws Exception
 	 */
@@ -66,6 +71,7 @@ class ImportService  {
 		}
 		$this->currentImport->end();
 		$this->importRepository->update($this->currentImport);
+		$this->lastImport = clone $this->currentImport;
 		unset($this->currentImport);
 	}
 
@@ -111,6 +117,28 @@ class ImportService  {
 	 */
 	public function persisteEvents() {
 		$this->importRepository->persistEntities();
+	}
+
+	/**
+	 * @return Import
+	 * @throws Exception
+	 */
+	public function getCurrentImport() {
+		if (!$this->currentImport instanceof Import) {
+			throw new Exception('Unable to get current import, please start an import first', 1426638561);
+		}
+		return $this->currentImport;
+	}
+
+	/**
+	 * @return Import
+	 * @throws Exception
+	 */
+	public function getLastImport() {
+		if (!$this->lastImport instanceof Import) {
+			throw new Exception('Last import is not set', 1426638561);
+		}
+		return $this->lastImport;
 	}
 
 	/**
