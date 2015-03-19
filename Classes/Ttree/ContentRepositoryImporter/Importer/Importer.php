@@ -171,6 +171,19 @@ abstract class Importer implements ImporterInterface {
 	}
 
 	/**
+	 * @param NodeTemplate $nodeTemplate
+	 * @throws \TYPO3\TYPO3CR\Exception\NodeException
+	 */
+	protected function unsetAllNodeTemplateProperties(NodeTemplate $nodeTemplate) {
+		foreach ($nodeTemplate->getPropertyNames() as $propertyName) {
+			if (!$nodeTemplate->hasProperty($propertyName)) {
+				continue;
+			}
+			$nodeTemplate->removeProperty($propertyName);
+		}
+	}
+
+	/**
 	 * @param string $externalIdentifier
 	 * @param string $nodeName
 	 * @param NodeInterface $storageNode
