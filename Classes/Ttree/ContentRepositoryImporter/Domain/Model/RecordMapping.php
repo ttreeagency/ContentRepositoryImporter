@@ -66,6 +66,7 @@ class RecordMapping  {
 
 	/**
 	 * @var string
+	 * @ORM\Column(length=4000)
 	 */
 	protected $nodePath;
 
