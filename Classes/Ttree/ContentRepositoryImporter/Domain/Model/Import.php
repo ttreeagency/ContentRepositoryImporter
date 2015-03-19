@@ -113,7 +113,7 @@ class Import  {
 	 */
 	public function end() {
 		if ($this->end instanceof \DateTime) {
-			return;
+			throw new Exception('This import has ended earlier', 1426763297);
 		}
 		$this->end = new \DateTime();
 		$this->addImportEndedEvent();
