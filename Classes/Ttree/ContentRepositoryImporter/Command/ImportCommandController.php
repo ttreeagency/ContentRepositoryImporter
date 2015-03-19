@@ -205,7 +205,7 @@ class ImportCommandController extends CommandController {
 			$importer->initialize($dataProvider);
 			$importer->process();
 
-			$this->output($dataProvider->getCount());
+			$this->output($importer->getProcessedRecords());
 		} catch (\Exception $exception) {
 			$this->logger->logException($exception);
 			$this->quit(1);

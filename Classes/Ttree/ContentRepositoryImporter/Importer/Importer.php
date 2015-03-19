@@ -102,6 +102,11 @@ abstract class Importer implements ImporterInterface {
 	protected $currentEvent;
 
 	/**
+	 * @var integer
+	 */
+	protected $processedRecords = 0;
+
+	/**
 	 * @param array $options
 	 * @param string $currentImportIdentifier
 	 */
@@ -141,6 +146,13 @@ abstract class Importer implements ImporterInterface {
 	}
 
 	/**
+	 * @return integer
+	 */
+	public function getProcessedRecords() {
+		return $this->processedRecords;
+	}
+
+	/**
 	 * Initialize import context
 	 * @param DataProviderInterface $dataProvider
 	 * @throws Exception
@@ -167,6 +179,7 @@ abstract class Importer implements ImporterInterface {
 		$records = $this->dataProvider->fetch();
 		array_walk($records, function ($data) use ($nodeTemplate) {
 			$this->processRecord($nodeTemplate, $data);
+			++$this->processedRecords;
 		});
 	}
 

@@ -47,4 +47,9 @@ interface ImporterInterface {
 	 */
 	public function setCurrentEvent(Event $event);
 
+	/**
+	 * @return integer
+	 */
+	public function getProcessedRecords();
+
 }

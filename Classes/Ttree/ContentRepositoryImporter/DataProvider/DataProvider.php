@@ -45,11 +45,6 @@ abstract class DataProvider implements DataProviderInterface {
 	protected $limit;
 
 	/**
-	 * @var integer
-	 */
-	protected $count = 0;
-
-	/**
 	 * @Flow\InjectConfiguration(package="Ttree.ContentRepositoryImporter")
 	 * @var array
 	 */
@@ -97,13 +92,6 @@ abstract class DataProvider implements DataProviderInterface {
 		}
 
 		return $query;
-	}
-
-	/**
-	 * @return integer
-	 */
-	public function getCount() {
-		return $this->count;
 	}
 
 	/**
