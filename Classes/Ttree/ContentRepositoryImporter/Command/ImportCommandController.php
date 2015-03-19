@@ -7,6 +7,7 @@ namespace Ttree\ContentRepositoryImporter\Command;
 
 use Ttree\ContentRepositoryImporter\DataProvider\DataProvider;
 use Ttree\ContentRepositoryImporter\Domain\Model\PresetPartDefinition;
+use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Importer\Importer;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Cache\Frontend\VariableFrontend;
@@ -15,7 +16,6 @@ use TYPO3\Flow\Configuration\ConfigurationManager;
 use TYPO3\Flow\Core\Booting\Scripts;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 use TYPO3\Flow\Object\ObjectManagerInterface;
-use TYPO3\Flow\Utility\Algorithms;
 use TYPO3\Flow\Utility\Arrays;
 
 /**
@@ -34,6 +34,12 @@ class ImportCommandController extends CommandController {
 	 * @var VariableFrontend
 	 */
 	protected $downloadCache;
+
+	/**
+	 * @Flow\Inject
+	 * @var ImportService
+	 */
+	protected $importService;
 
 	/**
 	 * @Flow\Inject
@@ -96,16 +102,16 @@ class ImportCommandController extends CommandController {
 	 * @param string $parts
 	 */
 	public function batchCommand($preset, $parts = NULL) {
+		$this->importService->start();
 		$this->startTime = microtime(TRUE);
 		$parts = Arrays::trimExplode(',', $parts);
 		$this->outputLine('Start import ...');
-		$logPrefix = Algorithms::generateRandomString(12);
 		$presetSettings = Arrays::getValueByPath($this->settings, array('presets', $preset));
 		if (!is_array($presetSettings)) {
 			$this->outputLine(sprintf('Preset "%s" not found ...', $preset));
 			$this->quit(1);
 		}
-		array_walk($presetSettings, function ($partSetting, $partName) use ($preset, $logPrefix, $parts) {
+		array_walk($presetSettings, function ($partSetting, $partName) use ($preset, $parts) {
 			$this->elapsedTime = 0;
 			$this->batchCounter = 0;
 			$this->outputLine();
@@ -114,7 +120,7 @@ class ImportCommandController extends CommandController {
 			$partSetting['__currentPresetName'] = $preset;
 			$partSetting['__currentPartName'] = $partName;
 
-			$partSetting = new PresetPartDefinition($partSetting, $logPrefix);
+			$partSetting = new PresetPartDefinition($partSetting, $this->importService->getCurrentImportIdentifier());
 			if ($parts !== array() && !in_array($partName, $parts)) {
 				$this->outputLine('Skipped');
 				return;
@@ -130,6 +136,7 @@ class ImportCommandController extends CommandController {
 
 		$this->outputLine();
 		$this->outputLine('Import finished');
+		$this->importService->stop();
 	}
 
 	/**
@@ -137,6 +144,8 @@ class ImportCommandController extends CommandController {
 	 * @return integer
 	 */
 	protected function executeCommand(PresetPartDefinition $partSetting) {
+		$this->importService->addEvent(sprintf('%s:Started', $partSetting->getEventType()), NULL, $partSetting->getCommandArguments());
+		$this->importService->persisteEvents();
 		$startTime = microtime(TRUE);
 		ob_start();
 		$status = Scripts::executeCommand('ttree.contentrepositoryimporter:import:executebatch', $this->getFlowSettings(), TRUE, $partSetting->getCommandArguments());
@@ -148,9 +157,11 @@ class ImportCommandController extends CommandController {
 			$this->outputLine('  #%d %d records in %dms, %d ms per record, %d ms per batch (avg)', [$partSetting->getCurrentBatch(), $count, $elapsedTime, $elapsedTime / $count, $this->elapsedTime / $this->batchCounter]);
 		}
 		if ($status !== TRUE) {
-			$this->outputLine("Command '%s' return an error", [ $partSetting->getLabel() ] );
+			$this->outputLine("Command '%s' return an error", [$partSetting->getLabel()]);
 			$this->quit(1);
 		}
+		$this->importService->addEvent(sprintf('%s:Ended', $partSetting->getEventType()), NULL, $partSetting->getCommandArguments());
+		$this->importService->persisteEvents();
 		return $count;
 	}
 
@@ -159,13 +170,13 @@ class ImportCommandController extends CommandController {
 	 * @param string $partName
 	 * @param string $dataProviderClassName
 	 * @param string $importerClassName
-	 * @param string $logPrefix
+	 * @param string $currentImportIdentifier
 	 * @param integer $offset
 	 * @param integer $batchSize
 	 * @return integer
 	 * @Flow\Internal
 	 */
-	public function executeBatchCommand($presetName, $partName, $dataProviderClassName, $importerClassName, $logPrefix, $offset = NULL, $batchSize = NULL) {
+	public function executeBatchCommand($presetName, $partName, $dataProviderClassName, $importerClassName, $currentImportIdentifier, $offset = NULL, $batchSize = NULL) {
 		try {
 			$dataProviderOptions = Arrays::getValueByPath($this->settings, implode('.', ['presets', $presetName, $partName, 'dataProviderOptions']));
 			/** @var DataProvider $dataProvider */
@@ -173,9 +184,9 @@ class ImportCommandController extends CommandController {
 
 			$importerOptions = Arrays::getValueByPath($this->settings, ['presets', $presetName, $partName, 'importerOptions']);
 			/** @var Importer $importer */
-			$importer = $this->objectManager->get($importerClassName, is_array($importerOptions) ? $importerOptions : []);
-			$importer->setLogPrefix($logPrefix);
-			$importer->import($dataProvider);
+			$importer = $this->objectManager->get($importerClassName, is_array($importerOptions) ? $importerOptions : [], $currentImportIdentifier);
+			$importer->initialize($dataProvider);
+			$importer->process();
 
 			$this->output($dataProvider->getCount());
 		} catch (\Exception $exception) {

@@ -5,13 +5,16 @@ namespace Ttree\ContentRepositoryImporter\Importer;
  * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
  *                                                                                  */
 
+use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
+use Ttree\ContentRepositoryImporter\Domain\Model\Event;
 use Ttree\ContentRepositoryImporter\Domain\Model\ProcessedNodeDefinition;
+use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Log\SystemLoggerInterface;
-use TYPO3\Flow\Utility\Algorithms;
 use TYPO3\TYPO3CR\Domain\Model\NodeInterface;
+use TYPO3\TYPO3CR\Domain\Model\NodeTemplate;
 use TYPO3\TYPO3CR\Domain\Repository\NodeDataRepository;
 use TYPO3\TYPO3CR\Domain\Service\ContextFactoryInterface;
 use TYPO3\TYPO3CR\Domain\Service\NodeTypeManager;
@@ -28,9 +31,15 @@ abstract class Importer implements ImporterInterface {
 	protected $logger;
 
 	/**
+	 * @Flow\Inject
+	 * @var ImportService
+	 */
+	protected $importService;
+
+	/**
 	 * @var string
 	 */
-	protected $logPrefix;
+	protected $currentImportIdentifier;
 
 	/**
 	 * @Flow\Inject
@@ -72,6 +81,11 @@ abstract class Importer implements ImporterInterface {
 	protected $storageNode;
 
 	/**
+	 * @var DataProviderInterface
+	 */
+	protected $dataProvider;
+
+	/**
 	 * @Flow\InjectConfiguration(package="Ttree.ContentRepositoryImporter")
 	 * @var array
 	 */
@@ -83,18 +97,56 @@ abstract class Importer implements ImporterInterface {
 	protected $options = [];
 
 	/**
-	 * @param array $options
+	 * @var Event
 	 */
-	public function __construct(array $options) {
+	protected $currentEvent;
+
+	/**
+	 * @param array $options
+	 * @param string $currentImportIdentifier
+	 */
+	public function __construct(array $options, $currentImportIdentifier) {
 		$this->options = $options;
+		$this->currentImportIdentifier = $currentImportIdentifier;
 	}
 
 	/**
-	 * Initialize
+	 * Resume the current Import
+	 *
+	 * This is required because we use sub request in CLI controller
 	 */
-	protected function initialize() {
-		$this->logPrefix = $this->logPrefix ?: Algorithms::generateRandomString(12);
+	public function initializeObject() {
+		$this->importService->resume($this->currentImportIdentifier);
+	}
 
+	/**
+	 * @return DataProviderInterface
+	 */
+	public function getDataProvider() {
+		return $this->dataProvider;
+	}
+
+	/**
+	 * @return ImportService
+	 */
+	public function getImportService() {
+		return $this->importService;
+	}
+
+	/**
+	 * @param Event $event
+	 */
+	public function setCurrentEvent(Event $event) {
+		$this->currentEvent = $event;
+	}
+
+	/**
+	 * Initialize import context
+	 * @param DataProviderInterface $dataProvider
+	 * @throws Exception
+	 */
+	public function initialize(DataProviderInterface $dataProvider) {
+		$this->dataProvider = $dataProvider;
 		$contextConfiguration = ['workspaceName' => 'live', 'invisibleContentShown' => TRUE];
 		$context = $this->contextFactory->create($contextConfiguration);
 		$this->rootNode = $context->getRootNode();
@@ -107,28 +159,33 @@ abstract class Importer implements ImporterInterface {
 	}
 
 	/**
-	 * @param string $logPrefix
+	 * Import data from the given data provider
+	 *
+	 * @param NodeTemplate $nodeTemplate
 	 */
-	public function setLogPrefix($logPrefix) {
-		$this->logPrefix = $logPrefix;
+	protected function processBatch(NodeTemplate $nodeTemplate = NULL) {
+		foreach ($this->dataProvider->fetch() as $data) {
+			$this->processRecord($nodeTemplate, $data);
+		}
 	}
 
 	/**
-	 * @param string $name
 	 * @param string $externalIdentifier
 	 * @param string $nodeName
 	 * @param NodeInterface $storageNode
 	 * @param boolean $skipExistingNode
-	 * @return boolean
+	 * @param bool $skipAlreadyProcessed
+	 * @return bool
+	 * @throws Exception
 	 */
-	protected function skipNodeProcessing($name, $externalIdentifier, $nodeName, NodeInterface $storageNode, $skipExistingNode = TRUE, $skipAlreadyProcessed = TRUE) {
+	protected function skipNodeProcessing($externalIdentifier, $nodeName, NodeInterface $storageNode, $skipExistingNode = TRUE, $skipAlreadyProcessed = TRUE) {
 		if ($skipAlreadyProcessed === TRUE && $this->getNodeProcessing($externalIdentifier)) {
-			$this->log(sprintf('- Skip already processed node "%s" ...', $name), LOG_NOTICE);
+			$this->importService->addEventMessage('Node:Processed:Skipped', 'Skip already processed', LOG_NOTICE, $this->currentEvent);
 			return TRUE;
 		}
 		$node = $storageNode->getNode($nodeName);
 		if ($skipExistingNode === TRUE && $node instanceof NodeInterface) {
-			$this->log(sprintf('- Skip existing node "%s" ...', $name), LOG_WARNING);
+			$this->importService->addEventMessage('Node:Existing:Skipped', 'Skip existing node', LOG_WARNING, $this->currentEvent);
 			$this->registerNodeProcessing($node, $externalIdentifier);
 			return TRUE;
 		}
@@ -155,9 +212,9 @@ abstract class Importer implements ImporterInterface {
 	/**
 	 * {@inheritdoc}
 	 */
-	protected function log($message, $severity = LOG_INFO, $additionalData = NULL, $packageKey = NULL, $className = NULL, $methodName = NULL) {
-		$message = sprintf('[%s] %s', $this->logPrefix, $message);
-		$this->logger->log($message, $severity, $additionalData, $packageKey, $className, $methodName);
+	protected function log($message, $severity = LOG_INFO) {
+		$message = sprintf('[%s] %s', $this->currentImportIdentifier, $message);
+		$this->importService->addEventMessage('Node:Existing:Skipped', $message, $severity, $this->currentEvent);
 	}
 
 }
