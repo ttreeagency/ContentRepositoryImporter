@@ -152,21 +152,25 @@ class ImportCommandController extends CommandController {
 		try {
 			$this->importService->addEvent(sprintf('%s:Started', $partSetting->getEventType()), NULL, $partSetting->getCommandArguments());
 			$this->importService->persisteEntities();
+
 			$startTime = microtime(TRUE);
+
+			++$this->batchCounter;
 			ob_start();
 			$status = Scripts::executeCommand('ttree.contentrepositoryimporter:import:executebatch', $this->getFlowSettings(), TRUE, $partSetting->getCommandArguments());
-			$count = (integer)ob_get_clean();
-			$elapsedTime = (microtime(TRUE) - $startTime) * 1000;
-			$this->elapsedTime += $elapsedTime;
-			++$this->batchCounter;
-			if ($count > 0) {
-				$this->outputLine('  #%d %d records in %dms, %d ms per record, %d ms per batch (avg)', [$partSetting->getCurrentBatch(), $count, $elapsedTime, $elapsedTime / $count, $this->elapsedTime / $this->batchCounter]);
-				$this->importService->addEvent(sprintf('%s:Ended', $partSetting->getEventType()), NULL, $partSetting->getCommandArguments());
-				$this->importService->persisteEntities();
-			}
 			if ($status !== TRUE) {
 				throw new Exception('Sub command failed', 1426767159);
 			}
+			$count = (integer)ob_get_clean();
+			if ($count < 1) {
+				return 0;
+			}
+
+			$elapsedTime = (microtime(TRUE) - $startTime) * 1000;
+			$this->elapsedTime += $elapsedTime;
+			$this->outputLine('  #%d %d records in %dms, %d ms per record, %d ms per batch (avg)', [$partSetting->getCurrentBatch(), $count, $elapsedTime, $elapsedTime / $count, $this->elapsedTime / $this->batchCounter]);
+			$this->importService->addEvent(sprintf('%s:Ended', $partSetting->getEventType()), NULL, $partSetting->getCommandArguments());
+			$this->importService->persisteEntities();
 			return $count;
 		} catch (\Exception $exception) {
 			$this->logger->logException($exception);
@@ -190,10 +194,12 @@ class ImportCommandController extends CommandController {
 	public function executeBatchCommand($presetName, $partName, $dataProviderClassName, $importerClassName, $currentImportIdentifier, $offset = NULL, $batchSize = NULL) {
 		try {
 			$dataProviderOptions = Arrays::getValueByPath($this->settings, implode('.', ['presets', $presetName, $partName, 'dataProviderOptions']));
+
 			/** @var DataProvider $dataProvider */
 			$dataProvider = $dataProviderClassName::create(is_array($dataProviderOptions) ? $dataProviderOptions : [], $offset, $batchSize);
 
 			$importerOptions = Arrays::getValueByPath($this->settings, ['presets', $presetName, $partName, 'importerOptions']);
+
 			/** @var Importer $importer */
 			$importer = $this->objectManager->get($importerClassName, is_array($importerOptions) ? $importerOptions : [], $currentImportIdentifier);
 			$importer->initialize($dataProvider);
