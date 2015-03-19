@@ -25,6 +25,8 @@ class EventLogAspect {
 	protected $importService;
 
 	/**
+	 * Add batch started event
+	 *
 	 * @Flow\Before("within(Ttree\ContentRepositoryImporter\Importer\ImporterInterface) && method(.*->process())")
 	 * @param JoinPointInterface $joinPoint
 	 */
@@ -37,6 +39,8 @@ class EventLogAspect {
 	}
 
 	/**
+	 * Add batch ended event
+	 *
 	 * @Flow\After("within(Ttree\ContentRepositoryImporter\Importer\ImporterInterface) && method(.*->process())")
 	 * @param JoinPointInterface $joinPoint
 	 */
@@ -49,6 +53,8 @@ class EventLogAspect {
 	}
 
 	/**
+	 * Add record started event
+	 *
 	 * @Flow\Before("within(Ttree\ContentRepositoryImporter\Importer\ImporterInterface) && method(.*->processRecord())")
 	 * @param JoinPointInterface $joinPoint
 	 */
@@ -66,6 +72,10 @@ class EventLogAspect {
 	}
 
 	/**
+	 * Flush all event after the ImporterInterface::processRecord()
+	 *
+	 * As an import batch can be a long running process, this ensure that the EventLog is flushed after each record processing
+	 *
 	 * @Flow\After("within(Ttree\ContentRepositoryImporter\Importer\ImporterInterface) && method(.*->processRecord())")
 	 * @param JoinPointInterface $joinPoint
 	 */
@@ -74,6 +84,8 @@ class EventLogAspect {
 	}
 
 	/**
+	 * Get the Importer and DataProvider class name
+	 *
 	 * @param ImporterInterface $importer
 	 * @return array
 	 */
