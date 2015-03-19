@@ -72,14 +72,14 @@ class ExternalResource extends DataType {
 			throw new Exception('Missing download directory data type option', 1425981085);
 		}
 		Files::createDirectoryRecursively($this->options['downloadDirectory']);
-		$temporaryFileAndPathname = trim($this->options['downloadDirectory'] . $filename);
+		$temporaryFileAndPathname = isset($value['temporaryPrefix']) ? trim(sprintf('%s%s-%s', $this->options['downloadDirectory'], $value['temporaryPrefix'], $filename)) : trim(sprintf('%s%s', $this->options['downloadDirectory'], $filename));
 
 		$this->download($sourceUri, $temporaryFileAndPathname);
 		$sha1Hash = sha1_file($temporaryFileAndPathname);
 
-		# Try to add file extenstion if missing
 		if (!$this->downloadCache->has($sha1Hash)) {
-			$fileExtension = pathinfo($temporaryFileAndPathname, PATHINFO_EXTENSION);
+			# Try to add file extenstion if missing
+			$fileExtension = pathinfo($filename, PATHINFO_EXTENSION);
 			if (trim($fileExtension) === '') {
 				$mimeTypeGuesser = new MimeTypeGuesser();
 				$mimeType = $mimeTypeGuesser->guess($temporaryFileAndPathname);
@@ -87,9 +87,9 @@ class ExternalResource extends DataType {
 				$fileExtension = MediaTypes::getFilenameExtensionFromMediaType($mimeType);
 				if ($fileExtension !== '') {
 					$oldTemporaryDestination = $temporaryFileAndPathname;
-					$temporaryDestination = $temporaryFileAndPathname . '.' . $fileExtension;
-					copy($oldTemporaryDestination, $temporaryDestination);
-					$this->logger->log(sprintf('Rename "%s" to "%s"', $oldTemporaryDestination, $temporaryDestination), LOG_DEBUG);
+					$temporaryFileAndPathname = $temporaryFileAndPathname . '.' . $fileExtension;
+					copy($oldTemporaryDestination, $temporaryFileAndPathname);
+					$this->logger->log(sprintf('Rename "%s" to "%s"', $oldTemporaryDestination, $temporaryFileAndPathname), LOG_DEBUG);
 				}
 			}
 		}
