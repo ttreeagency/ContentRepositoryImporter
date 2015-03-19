@@ -216,8 +216,7 @@ abstract class Importer implements ImporterInterface {
 	 * {@inheritdoc}
 	 */
 	protected function log($message, $severity = LOG_INFO) {
-		$message = sprintf('[%s] %s', $this->currentImportIdentifier, $message);
-		$this->importService->addEventMessage('Node:Existing:Skipped', $message, $severity, $this->currentEvent);
+		$this->importService->addEventMessage('Record:Import:Action:Reported', $message, $severity, $this->currentEvent);
 	}
 
 }
