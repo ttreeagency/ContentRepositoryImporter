@@ -8,7 +8,9 @@ namespace Ttree\ContentRepositoryImporter\Domain\Service;
 use Doctrine\ORM\Mapping as ORM;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;
 use Ttree\ContentRepositoryImporter\Domain\Model\Import;
+use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Ttree\ContentRepositoryImporter\Domain\Repository\ImportRepository;
+use Ttree\ContentRepositoryImporter\Domain\Repository\RecordMappingRepository;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Persistence\PersistenceManagerInterface;
@@ -23,6 +25,12 @@ class ImportService  {
 	 * @var ImportRepository
 	 */
 	protected $importRepository;
+
+	/**
+	 * @Flow\Inject
+	 * @var RecordMappingRepository
+	 */
+	protected $recordMappingRepository;
 
 	/**
 	 * @Flow\Inject
@@ -76,6 +84,35 @@ class ImportService  {
 	}
 
 	/**
+	 * @param string $importerClassName
+	 * @param string $externalIdentifier
+	 * @param string $externalRelativeUri
+	 * @param string $nodeIdentifier
+	 * @param string $nodePath
+	 */
+	public function addOrUpdateRecordMapping($importerClassName, $externalIdentifier, $externalRelativeUri, $nodeIdentifier, $nodePath) {
+		$recordMapping = $this->recordMappingRepository->findOneByImporterClassNameAndExternalIdentifier($importerClassName, $externalIdentifier);
+		if ($recordMapping === NULL) {
+			$recordMapping = new RecordMapping($importerClassName, $externalIdentifier, $externalRelativeUri, $nodeIdentifier, $nodePath);
+			$this->recordMappingRepository->add($recordMapping);
+		} else {
+			$recordMapping->setExternalRelativeUri($externalRelativeUri);
+			$recordMapping->setNodeIdentifier($nodeIdentifier);
+			$recordMapping->setNodePath($nodePath);
+			$this->recordMappingRepository->update($recordMapping);
+		}
+
+		$this->recordMappingRepository->persistEntities();
+		$this->addEvent(sprintf('%s:Record:Ended', substr($importerClassName, strrpos($importerClassName, '\\') + 1)), $externalIdentifier, [
+			'importerClassName' => $importerClassName,
+			'externalIdentifier' => $externalIdentifier,
+			'externalRelativeUri' => $externalRelativeUri,
+			'nodeIdentifier' => $nodeIdentifier,
+			'nodePath' => $nodePath
+		]);
+	}
+
+	/**
 	 * @param string $eventType
 	 * @param string $externalIdentifier
 	 * @param array $data
@@ -113,9 +150,9 @@ class ImportService  {
 	}
 
 	/**
-	 * Persist all pending events
+	 * Persist all pending entities
 	 */
-	public function persisteEvents() {
+	public function persisteEntities() {
 		$this->importRepository->persistEntities();
 	}
 

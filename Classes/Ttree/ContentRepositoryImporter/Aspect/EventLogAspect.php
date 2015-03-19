@@ -80,7 +80,7 @@ class EventLogAspect {
 	 * @param JoinPointInterface $joinPoint
 	 */
 	public function flushEvents(JoinPointInterface $joinPoint) {
-		$this->importService->persisteEvents();
+		$this->importService->persisteEntities();
 	}
 
 	/**

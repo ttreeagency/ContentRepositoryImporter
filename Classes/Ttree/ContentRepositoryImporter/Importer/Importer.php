@@ -7,7 +7,7 @@ namespace Ttree\ContentRepositoryImporter\Importer;
 
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;
-use Ttree\ContentRepositoryImporter\Domain\Model\ProcessedNodeDefinition;
+use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use TYPO3\Flow\Annotations as Flow;
@@ -164,7 +164,8 @@ abstract class Importer implements ImporterInterface {
 	 * @param NodeTemplate $nodeTemplate
 	 */
 	protected function processBatch(NodeTemplate $nodeTemplate = NULL) {
-		array_walk($this->dataProvider->fetch(), function ($data) use ($nodeTemplate) {
+		$records = $this->dataProvider->fetch();
+		array_walk($records, function ($data) use ($nodeTemplate) {
 			$this->processRecord($nodeTemplate, $data);
 		});
 	}
@@ -196,14 +197,16 @@ abstract class Importer implements ImporterInterface {
 	/**
 	 * @param NodeInterface $node
 	 * @param string $externalIdentifier
+	 * @param string $externalRelativeUri
 	 */
-	protected function registerNodeProcessing(NodeInterface $node, $externalIdentifier) {
-		$this->processedNodeService->set(get_called_class(), $externalIdentifier, $node);
+	protected function registerNodeProcessing(NodeInterface $node, $externalIdentifier, $externalRelativeUri = NULL) {
+		$this->importService->addOrUpdateRecordMapping(get_called_class(), $externalIdentifier, $externalRelativeUri, $node->getIdentifier(), $node->getPath());
+		$this->processedNodeService->set(get_called_class(), $externalIdentifier);
 	}
 
 	/**
 	 * @param string $externalIdentifier
-	 * @return ProcessedNodeDefinition
+	 * @return RecordMapping
 	 */
 	protected function getNodeProcessing($externalIdentifier) {
 		return $this->processedNodeService->get(get_called_class(), $externalIdentifier);
