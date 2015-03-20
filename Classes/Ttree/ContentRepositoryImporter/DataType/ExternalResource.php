@@ -155,7 +155,7 @@ class ExternalResource extends DataType {
 			throw new Exception(sprintf('Unable to download the given file: %s', $source));
 		}
 
-		$ch = curl_init(str_replace(" ","%20",$source));
+		$ch = curl_init(str_replace(" ", "%20", $source));
 		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
 		curl_setopt($ch, CURLOPT_FILE, $fp);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
