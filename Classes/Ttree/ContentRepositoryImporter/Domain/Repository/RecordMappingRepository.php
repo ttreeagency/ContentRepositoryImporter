@@ -30,7 +30,7 @@ class RecordMappingRepository extends Repository  {
 		$query = $this->createQuery();
 
 		$query->matching($query->logicalAnd(
-			$query->equals('importerClassName', $importerClassName),
+			$query->equals('importerClassNameHash', md5($importerClassName)),
 			$query->equals('externalIdentifier', $externalIdentifier)
 		));
 
