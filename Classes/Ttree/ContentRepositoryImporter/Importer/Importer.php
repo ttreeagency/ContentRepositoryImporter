@@ -107,6 +107,22 @@ abstract class Importer implements ImporterInterface {
 	protected $processedRecords = 0;
 
 	/**
+	 * Mapping between severity constants and string
+	 *
+	 * @var array
+	 */
+	protected $severityLabels = [
+		LOG_EMERG => 'Emergency',
+		LOG_ALERT => 'Alert',
+		LOG_CRIT => 'Critcyl',
+		LOG_ERR => 'Error',
+		LOG_WARNING => 'Warning',
+		LOG_NOTICE => 'Notice',
+		LOG_INFO => 'Info',
+		LOG_DEBUG => 'Debug',
+	];
+
+	/**
 	 * @param array $options
 	 * @param string $currentImportIdentifier
 	 */
@@ -143,6 +159,13 @@ abstract class Importer implements ImporterInterface {
 	 */
 	public function setCurrentEvent(Event $event) {
 		$this->currentEvent = $event;
+	}
+
+	/**
+	 * @return Event
+	 */
+	public function getCurrentEvent() {
+		return $this->currentEvent;
 	}
 
 	/**
@@ -239,10 +262,13 @@ abstract class Importer implements ImporterInterface {
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Create an entry in the event log
 	 */
 	protected function log($message, $severity = LOG_INFO) {
-		$this->importService->addEventMessage('Record:Import:Action:Reported', $message, $severity, $this->currentEvent);
+		if (!isset($this->severityLabels[$severity])) {
+			throw new Exception('Invalid severity value', 1426868867);
+		}
+		$this->importService->addEventMessage(sprintf('Record:Import:Log:%s', $this->severityLabels[$severity]), $message, $severity, $this->currentEvent);
 	}
 
 }
