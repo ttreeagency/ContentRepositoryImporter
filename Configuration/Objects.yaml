@@ -17,13 +17,6 @@ Ttree\ContentRepositoryImporter\Command\ImportCommandController:
         arguments:
           1:
             value: Ttree_ContentRepositoryImporter_Processed_Node
-    downloadCache:
-      object:
-        factoryObjectName: TYPO3\Flow\Cache\CacheManager
-        factoryMethodName: getCache
-        arguments:
-          1:
-            value: Ttree_ContentRepositoryImporter_External_Resource
 
 Ttree\ContentRepositoryImporter\DataType\ExternalResource:
   properties:

@@ -32,11 +32,6 @@ class ExternalResource extends DataType {
 	protected $resourceManager;
 
 	/**
-	 * @var VariableFrontend
-	 */
-	protected $downloadCache;
-
-	/**
 	 * @var string
 	 */
 	protected $temporaryFileAndPathname;
@@ -66,55 +61,49 @@ class ExternalResource extends DataType {
 			throw new Exception('Missing filename URI', 1425981084);
 		}
 		$filename = trim($value['filename']);
-		$overrideFilename = isset($value['overrideFilename']) ? trim($value['overrideFilename']) : $filename;
+		$fileExtension = strtolower(trim(pathinfo($filename, PATHINFO_EXTENSION)));
+		$overrideFilename = isset($value['overrideFilename']) ? trim($value['overrideFilename']) : pathinfo($filename, PATHINFO_FILENAME);
+		if ($fileExtension) {
+			$overrideFilename = sprintf('%s.%s', $overrideFilename, $fileExtension);
+		}
 
 		if (!isset($this->options['downloadDirectory'])) {
 			throw new Exception('Missing download directory data type option', 1425981085);
 		}
 		Files::createDirectoryRecursively($this->options['downloadDirectory']);
-		$temporaryFileAndPathname = isset($value['temporaryPrefix']) ? trim(sprintf('%s%s-%s', $this->options['downloadDirectory'], $value['temporaryPrefix'], $filename)) : trim(sprintf('%s%s', $this->options['downloadDirectory'], $filename));
 
+		$temporaryFilename = isset($value['temporaryPrefix']) ? trim(sprintf('%s-%s', $value['temporaryPrefix'], $overrideFilename)) : trim(sprintf('%s%s', $overrideFilename));
+		$temporaryFileAndPathname = sprintf('%s%s', $this->options['downloadDirectory'], $temporaryFilename);
 		$this->download($sourceUri, $temporaryFileAndPathname);
-		$sha1Hash = sha1_file($temporaryFileAndPathname);
 
-		if (!$this->downloadCache->has($sha1Hash)) {
-			# Try to add file extenstion if missing
-			$fileExtension = pathinfo($filename, PATHINFO_EXTENSION);
-			if (trim($fileExtension) === '') {
-				$mimeTypeGuesser = new MimeTypeGuesser();
-				$mimeType = $mimeTypeGuesser->guess($temporaryFileAndPathname);
-				$this->logger->log(sprintf('Try to guess mime type for "%s" (%s), result: %s', $sourceUri, $filename, $mimeType), LOG_DEBUG);
-				$fileExtension = MediaTypes::getFilenameExtensionFromMediaType($mimeType);
-				if ($fileExtension !== '') {
-					$oldTemporaryDestination = $temporaryFileAndPathname;
-					$temporaryFileAndPathname = $temporaryFileAndPathname . '.' . $fileExtension;
+		# Try to add file extenstion if missing
+		if ($fileExtension === '') {
+			$mimeTypeGuesser = new MimeTypeGuesser();
+			$mimeType = $mimeTypeGuesser->guess($temporaryFileAndPathname);
+			$this->logger->log(sprintf('Try to guess mime type for "%s" (%s), result: %s', $sourceUri, $filename, $mimeType), LOG_DEBUG);
+			$fileExtension = MediaTypes::getFilenameExtensionFromMediaType($mimeType);
+			if ($fileExtension !== '') {
+				$oldTemporaryDestination = $temporaryFileAndPathname;
+				$temporaryFileAndPathname = sprintf('%s.%s', $temporaryFileAndPathname, $fileExtension);
+				if (!is_file($temporaryFileAndPathname)) {
 					copy($oldTemporaryDestination, $temporaryFileAndPathname);
 					$this->logger->log(sprintf('Rename "%s" to "%s"', $oldTemporaryDestination, $temporaryFileAndPathname), LOG_DEBUG);
 				}
 			}
-			# Trim border
-			if (isset($value['trimBorder']) && $value['trimBorder'] === TRUE) {
-				$this->trimImageBorder($temporaryFileAndPathname);
-				$sha1Hash = sha1_file($temporaryFileAndPathname);
-			}
+		}
+		# Trim border
+		if (isset($value['trimBorder']) && $value['trimBorder'] === TRUE) {
+			$this->trimImageBorder($temporaryFileAndPathname);
 		}
 
+		$sha1Hash = sha1_file($temporaryFileAndPathname);
 		$resource = $this->resourceManager->getResourceBySha1($sha1Hash);
 		if ($resource === NULL) {
 			$resource = $this->resourceManager->importResource($temporaryFileAndPathname);
-			if ($filename !== $overrideFilename) {
-				$resource->setFilename($overrideFilename);
-			}
+			$resource->setFilename(basename($temporaryFileAndPathname));
 		}
 
 		$this->temporaryFileAndPathname = $temporaryFileAndPathname;
-
-		$this->downloadCache->set($sha1Hash, [
-			'sha1Hash' => $sha1Hash,
-			'filename' => $filename,
-			'sourceUri' => $sourceUri,
-			'temporaryFileAndPathname' => $temporaryFileAndPathname
-		]);
 
 		$this->value = $resource;
 	}
@@ -123,12 +112,17 @@ class ExternalResource extends DataType {
 	 * @param string $fileAndPathname
 	 */
 	protected function trimImageBorder($fileAndPathname) {
-		$isImage = getimagesize($fileAndPathname) ? TRUE : FALSE;
+		$isProcessed = sprintf('%s.trimmed', $fileAndPathname);
+		if (is_file($isProcessed)) {
+			return;
+		}
+		$isImage = @getimagesize($fileAndPathname) ? TRUE : FALSE;
 		if (!$isImage) {
 			return;
 		}
 		$command = sprintf('convert "%s" -trim "%s" > /dev/null 2> /dev/null', $fileAndPathname, $fileAndPathname);
 		exec($command, $output, $result);
+		touch($isProcessed);
 	}
 
 	/**
