@@ -7,6 +7,7 @@ namespace Ttree\ContentRepositoryImporter\Command;
 
 use Ttree\ContentRepositoryImporter\DataProvider\DataProvider;
 use Ttree\ContentRepositoryImporter\Domain\Model\PresetPartDefinition;
+use Ttree\ContentRepositoryImporter\Domain\Repository\EventRepository;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Importer\Importer;
 use TYPO3\Flow\Annotations as Flow;
@@ -32,15 +33,16 @@ class ImportCommandController extends CommandController {
 	protected $cache;
 
 	/**
-	 * @var VariableFrontend
-	 */
-	protected $downloadCache;
-
-	/**
 	 * @Flow\Inject
 	 * @var ImportService
 	 */
 	protected $importService;
+
+	/**
+	 * @Flow\Inject
+	 * @var EventRepository
+	 */
+	protected $eventLogRepository;
 
 	/**
 	 * @Flow\Inject
@@ -93,7 +95,13 @@ class ImportCommandController extends CommandController {
 	 */
 	public function flushCacheCommand() {
 		$this->cache->flush();
-		$this->downloadCache->flush();
+	}
+
+	/**
+	 * Remove all import event from the event log
+	 */
+	public function flushEventLogCommand() {
+		$this->eventLogRepository->removeAll();
 	}
 
 	/**
