@@ -65,7 +65,11 @@ class Import  {
 		}
 		$event = new Event($eventType, $data, NULL, $parentEvent);
 		$event->setExternalIdentifier($externalIdentifier);
-		$this->eventEmittingService->add($event);
+		try {
+			$this->eventEmittingService->add($event);
+		} catch (\Exception $exception) {
+
+		}
 
 		return $event;
 	}
@@ -75,15 +79,23 @@ class Import  {
 	 */
 	protected function addImportStartedEvent() {
 		$event = new Event('Import.Started', array());
-		$this->eventEmittingService->add($event);
+		try {
+			$this->eventEmittingService->add($event);
+		} catch (\Exception $exception) {
+
+		}
 	}
 
 	/**
 	 * Add a Import.Ended event in the EventLog
 	 */
 	protected function addImportEndedEvent() {
-		$event = new Event('Import.Ended', array());
-		$this->eventEmittingService->add($event);
+		try {
+			$event = new Event('Import.Ended', array());
+			$this->eventEmittingService->add($event);
+		} catch (\Exception $exception) {
+
+		}
 	}
 
 	/**
