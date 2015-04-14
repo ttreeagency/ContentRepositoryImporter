@@ -5,9 +5,8 @@ namespace Ttree\ContentRepositoryImporter\Domain\Model;
  * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
  *                                                                                  */
 
-use Ttree\ContentRepositoryImporter\DataType\InvalidArgumentException;
+use Ttree\ContentRepositoryImporter\Exception\InvalidArgumentException;
 use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Utility\Algorithms;
 
 /**
  * Preset Part Definition
