@@ -86,7 +86,7 @@ class PresetPartDefinition  {
 		}
 		$this->dataProviderClassName = (string)$setting['dataProviderClassName'];
 		if (!isset($setting['importerClassName']) || !is_string($setting['importerClassName'])) {
-			throw new InvalidArgumentException('Missing or invalid "dataProviderClassName" in preset part settings', 1426156159);
+			throw new InvalidArgumentException('Missing or invalid "importerClassName" in preset part settings', 1426156159);
 		}
 		$this->importerClassName = (string)$setting['importerClassName'];
 		$this->batchSize = isset($setting['batchSize']) ? (integer)$setting['batchSize'] : NULL;
