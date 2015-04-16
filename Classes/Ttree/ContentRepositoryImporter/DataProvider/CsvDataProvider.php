@@ -86,13 +86,13 @@ class CsvDataProvider implements DataProviderInterface {
 		if (($handle = fopen($this->csvFilePath, 'r')) !== FALSE) {
 			while (($data = fgetcsv($handle, 65534, ",")) !== FALSE) {
 				// skip header (maybe is better to set the first offset position instead)
-				if($currentLine === 0) {
+				if(isset($this->options['skipHeader']) && $this->options['skipHeader'] === TRUE && $currentLine === 0) {
 					$currentLine++;
 					continue;
 				}
 				if ($currentLine >= $this->offset && $currentLine < ($this->offset + $this->limit)) {
 					if (isset($data[0]) && $data[0] !== '') {
-						$data['__label'] = $data[1] . ' ' . $data[0];
+						$this->preProcessRecordData($data);
 						$dataResult[] = $data;
 					}
 				}
@@ -141,4 +141,11 @@ class CsvDataProvider implements DataProviderInterface {
 		return $this->limit > 0;
 	}
 
+	/**
+	 * Can be use to process data in children class
+	 * @param $data
+	 */
+	protected function preProcessRecordData(&$data) {
+		
+	}
 }
