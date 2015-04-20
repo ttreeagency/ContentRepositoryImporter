@@ -143,9 +143,9 @@ class CsvDataProvider implements DataProviderInterface {
 
 	/**
 	 * Can be use to process data in children class
-	 * @param $data
+	 * @param array $data
 	 */
 	protected function preProcessRecordData(&$data) {
-		
+
 	}
 }
