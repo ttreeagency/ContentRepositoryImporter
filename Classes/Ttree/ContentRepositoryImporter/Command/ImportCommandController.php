@@ -11,7 +11,6 @@ use Ttree\ContentRepositoryImporter\Domain\Repository\EventRepository;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Importer\Importer;
 use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Cache\Frontend\VariableFrontend;
 use TYPO3\Flow\Cli\CommandController;
 use TYPO3\Flow\Configuration\ConfigurationManager;
 use TYPO3\Flow\Core\Booting\Scripts;
@@ -27,11 +26,6 @@ use TYPO3\Neos\EventLog\Domain\Service\EventEmittingService;
  * @Flow\Scope("singleton")
  */
 class ImportCommandController extends CommandController {
-
-	/**
-	 * @var VariableFrontend
-	 */
-	protected $cache;
 
 	/**
 	 * @Flow\Inject
@@ -98,13 +92,6 @@ class ImportCommandController extends CommandController {
 	}
 
 	/**
-	 * Reset processed node cache
-	 */
-	public function flushCacheCommand() {
-		$this->cache->flush();
-	}
-
-	/**
 	 * Remove all import event from the event log
 	 */
 	public function flushEventLogCommand() {
@@ -118,47 +105,45 @@ class ImportCommandController extends CommandController {
 	 * @param string $parts
 	 */
 	public function batchCommand($preset, $parts = NULL) {
-		$this->eventEmittingService->withoutEventLog(function() use ($preset, $parts) {
-			$this->importService->start();
-			$this->startTime = microtime(TRUE);
-			$parts = Arrays::trimExplode(',', $parts);
-			$this->outputLine('Start import ...');
-			$presetSettings = Arrays::getValueByPath($this->settings, array('presets', $preset));
-			if (!is_array($presetSettings)) {
-				$this->outputLine(sprintf('Preset "%s" not found ...', $preset));
-				$this->quit(1);
-			}
-			array_walk($presetSettings, function ($partSetting, $partName) use ($preset, $parts) {
-				$this->elapsedTime = 0;
-				$this->batchCounter = 0;
-				$this->outputLine();
-				$this->outputFormatted(sprintf('<b>%s</b>', $partSetting['label']));
-
-				$partSetting['__currentPresetName'] = $preset;
-				$partSetting['__currentPartName'] = $partName;
-
-				$partSetting = new PresetPartDefinition($partSetting, $this->importService->getCurrentImportIdentifier());
-				if ($parts !== array() && !in_array($partName, $parts)) {
-					$this->outputLine('Skipped');
-					return;
-				}
-				if ($partSetting->getBatchSize()) {
-					while (($count = $this->executeCommand($partSetting)) > 0) {
-						$partSetting->nextBatch();
-					}
-				} else {
-					$this->executeCommand($partSetting);
-				}
-			});
-
-			$this->importService->stop();
-			$import = $this->importService->getLastImport();
+		$this->importService->start();
+		$this->startTime = microtime(TRUE);
+		$parts = Arrays::trimExplode(',', $parts);
+		$this->outputLine('Start import ...');
+		$presetSettings = Arrays::getValueByPath($this->settings, array('presets', $preset));
+		if (!is_array($presetSettings)) {
+			$this->outputLine(sprintf('Preset "%s" not found ...', $preset));
+			$this->quit(1);
+		}
+		array_walk($presetSettings, function ($partSetting, $partName) use ($preset, $parts) {
+			$this->elapsedTime = 0;
+			$this->batchCounter = 0;
 			$this->outputLine();
-			$this->outputLine('Import finished');
-			$this->outputLine(sprintf('  Started   %s', $import->getStart()->format(DATE_RFC2822)));
-			$this->outputLine(sprintf('  Finished  %s', $import->getEnd()->format(DATE_RFC2822)));
-			$this->outputLine(sprintf('  Runtime   %d seconds', $import->getElapsedTime()));
+			$this->outputFormatted(sprintf('<b>%s</b>', $partSetting['label']));
+
+			$partSetting['__currentPresetName'] = $preset;
+			$partSetting['__currentPartName'] = $partName;
+
+			$partSetting = new PresetPartDefinition($partSetting, $this->importService->getCurrentImportIdentifier());
+			if ($parts !== array() && !in_array($partName, $parts)) {
+				$this->outputLine('Skipped');
+				return;
+			}
+			if ($partSetting->getBatchSize()) {
+				while (($count = $this->executeCommand($partSetting)) > 0) {
+					$partSetting->nextBatch();
+				}
+			} else {
+				$this->executeCommand($partSetting);
+			}
 		});
+
+		$this->importService->stop();
+		$import = $this->importService->getLastImport();
+		$this->outputLine();
+		$this->outputLine('Import finished');
+		$this->outputLine(sprintf('  Started   %s', $import->getStart()->format(DATE_RFC2822)));
+		$this->outputLine(sprintf('  Finished  %s', $import->getEnd()->format(DATE_RFC2822)));
+		$this->outputLine(sprintf('  Runtime   %d seconds', $import->getElapsedTime()));
 	}
 
 	/**
@@ -209,26 +194,24 @@ class ImportCommandController extends CommandController {
 	 * @Flow\Internal
 	 */
 	public function executeBatchCommand($presetName, $partName, $dataProviderClassName, $importerClassName, $currentImportIdentifier, $offset = NULL, $batchSize = NULL) {
-		$this->eventEmittingService->withoutEventLog(function() use ($presetName, $partName, $dataProviderClassName, $importerClassName, $currentImportIdentifier, $offset, $batchSize) {
-			try {
-				$dataProviderOptions = Arrays::getValueByPath($this->settings, implode('.', ['presets', $presetName, $partName, 'dataProviderOptions']));
+		try {
+			$dataProviderOptions = Arrays::getValueByPath($this->settings, implode('.', ['presets', $presetName, $partName, 'dataProviderOptions']));
 
-				/** @var DataProvider $dataProvider */
-				$dataProvider = $dataProviderClassName::create(is_array($dataProviderOptions) ? $dataProviderOptions : [], $offset, $batchSize);
+			/** @var DataProvider $dataProvider */
+			$dataProvider = $dataProviderClassName::create(is_array($dataProviderOptions) ? $dataProviderOptions : [], $offset, $batchSize);
 
-				$importerOptions = Arrays::getValueByPath($this->settings, ['presets', $presetName, $partName, 'importerOptions']);
+			$importerOptions = Arrays::getValueByPath($this->settings, ['presets', $presetName, $partName, 'importerOptions']);
 
-				/** @var Importer $importer */
-				$importer = $this->objectManager->get($importerClassName, is_array($importerOptions) ? $importerOptions : [], $currentImportIdentifier);
-				$importer->initialize($dataProvider);
-				$importer->process();
+			/** @var Importer $importer */
+			$importer = $this->objectManager->get($importerClassName, is_array($importerOptions) ? $importerOptions : [], $currentImportIdentifier);
+			$importer->initialize($dataProvider);
+			$importer->process();
 
-				$this->output($importer->getProcessedRecords());
-			} catch (\Exception $exception) {
-				$this->logger->logException($exception);
-				$this->quit(1);
-			}
-		});
+			$this->output($importer->getProcessedRecords());
+		} catch (\Exception $exception) {
+			$this->logger->logException($exception);
+			$this->quit(1);
+		}
 	}
 
 	/**

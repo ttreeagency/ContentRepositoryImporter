@@ -7,7 +7,6 @@ namespace Ttree\ContentRepositoryImporter\DataType;
 
 use Gedmo\Uploadable\MimeType\MimeTypeGuesser;
 use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Cache\Frontend\VariableFrontend;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 use TYPO3\Flow\Resource\ResourceManager;

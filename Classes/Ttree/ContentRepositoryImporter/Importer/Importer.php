@@ -249,8 +249,12 @@ abstract class Importer implements ImporterInterface {
 	 * @param string $externalRelativeUri
 	 */
 	protected function registerNodeProcessing(NodeInterface $node, $externalIdentifier, $externalRelativeUri = NULL) {
-		$this->importService->addOrUpdateRecordMapping(get_called_class(), $externalIdentifier, $externalRelativeUri, $node->getIdentifier(), $node->getPath());
-		$this->processedNodeService->set(get_called_class(), $externalIdentifier);
+		if (defined('static::IMPORTER_CLASSNAME') === FALSE) {
+			$importerClassName = get_called_class();
+		} else {
+			$importerClassName = static::IMPORTER_CLASSNAME;
+		}
+		$this->processedNodeService->set($importerClassName, $externalIdentifier, $externalRelativeUri, $node->getIdentifier(), $node->getPath());
 	}
 
 	/**
