@@ -73,7 +73,10 @@ class ExternalResource extends DataType {
 
 		$temporaryFilename = isset($value['temporaryPrefix']) ? trim(sprintf('%s-%s', $value['temporaryPrefix'], $overrideFilename)) : trim(sprintf('%s%s', $overrideFilename));
 		$temporaryFileAndPathname = sprintf('%s%s', $this->options['downloadDirectory'], $temporaryFilename);
-		$this->download($sourceUri, $temporaryFileAndPathname);
+
+		$username = isset($value['username']) ? $value['username'] : NULL;
+		$password = isset($value['password']) ? $value['password'] : NULL;
+		$this->download($sourceUri, $temporaryFileAndPathname, FALSE, $username, $password);
 
 		# Try to add file extenstion if missing
 		if ($fileExtension === '') {
@@ -145,7 +148,7 @@ class ExternalResource extends DataType {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	protected function download($source, $destination, $force = FALSE) {
+	protected function download($source, $destination, $force = FALSE, $username = NULL, $password = NULL) {
 		if ($force === FALSE && is_file($destination)) {
 			return TRUE;
 		}
@@ -158,6 +161,9 @@ class ExternalResource extends DataType {
 		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
 		curl_setopt($ch, CURLOPT_FILE, $fp);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		if ($username !== NULL && $password !== NULL) {
+			curl_setopt($ch, CURLOPT_USERPWD, sprintf('%s:%s', $username, $password));
+		}
 		curl_exec($ch);
 		curl_close($ch);
 
