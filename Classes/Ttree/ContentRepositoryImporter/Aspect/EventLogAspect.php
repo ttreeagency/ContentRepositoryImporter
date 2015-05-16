@@ -10,6 +10,7 @@ use Ttree\ContentRepositoryImporter\Importer\ImporterInterface;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\AOP\JoinPointInterface;
 use TYPO3\Flow\Log\SystemLoggerInterface;
+use TYPO3\Flow\Persistence\PersistenceManagerInterface;
 use TYPO3\Flow\Utility\Arrays;
 use TYPO3\TYPO3CR\Domain\Repository\NodeDataRepository;
 
@@ -28,6 +29,12 @@ class EventLogAspect {
 
 	/**
 	 * @Flow\Inject
+	 * @var PersistenceManagerInterface
+	 */
+	protected $persistenceManager;
+
+	/**
+	 * @Flow\Inject
 	 * @var NodeDataRepository
 	 */
 	protected $nodeDataRepository;
@@ -37,34 +44,6 @@ class EventLogAspect {
 	 * @var SystemLoggerInterface
 	 */
 	protected $logger;
-
-	/**
-	 * Add batch started event
-	 *
-	 * @Flow\Before("within(Ttree\ContentRepositoryImporter\Importer\ImporterInterface) && method(.*->process())")
-	 * @param JoinPointInterface $joinPoint
-	 */
-	public function addBatchStartedEvent(JoinPointInterface $joinPoint) {
-		/** @var ImporterInterface $importer */
-		$importer = $joinPoint->getProxy();
-		list($importerClassName, $dataProviderClassName) = $this->getImporterClassNames($importer);
-
-		$importer->getImportService()->addEventMessage(sprintf('%s:Batch:Started', $importerClassName), sprintf('%s batch started via %s', $importerClassName, $dataProviderClassName));
-	}
-
-	/**
-	 * Add batch ended event
-	 *
-	 * @Flow\After("within(Ttree\ContentRepositoryImporter\Importer\ImporterInterface) && method(.*->process())")
-	 * @param JoinPointInterface $joinPoint
-	 */
-	public function addBatchEndedEvent(JoinPointInterface $joinPoint) {
-		/** @var ImporterInterface $importer */
-		$importer = $joinPoint->getProxy();
-		list($importerClassName, $dataProviderClassName) = $this->getImporterClassNames($importer);
-
-		$importer->getImportService()->addEventMessage(sprintf('%s:Batch:Ended', $importerClassName), sprintf('%s batch ended via %s', $importerClassName, $dataProviderClassName));
-	}
 
 	/**
 	 * Add record started event

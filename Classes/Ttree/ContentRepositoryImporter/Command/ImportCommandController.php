@@ -17,6 +17,7 @@ use TYPO3\Flow\Core\Booting\Scripts;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 use TYPO3\Flow\Object\ObjectManagerInterface;
+use TYPO3\Flow\Persistence\PersistenceManagerInterface;
 use TYPO3\Flow\Utility\Arrays;
 use TYPO3\Neos\EventLog\Domain\Service\EventEmittingService;
 
@@ -204,9 +205,10 @@ class ImportCommandController extends CommandController {
 
 			/** @var Importer $importer */
 			$importer = $this->objectManager->get($importerClassName, is_array($importerOptions) ? $importerOptions : [], $currentImportIdentifier);
+			$importer->getImportService()->addEventMessage(sprintf('%s:Batch:Started', $importerClassName), sprintf('%s batch started (%s)', $importerClassName, $dataProviderClassName));
 			$importer->initialize($dataProvider);
 			$importer->process();
-
+			$importer->getImportService()->addEventMessage(sprintf('%s:Batch:Ended', $importerClassName), sprintf('%s batch ended (%s)', $importerClassName, $dataProviderClassName));
 			$this->output($importer->getProcessedRecords());
 		} catch (\Exception $exception) {
 			$this->logger->logException($exception);
