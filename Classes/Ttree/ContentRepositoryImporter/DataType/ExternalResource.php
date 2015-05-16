@@ -43,6 +43,20 @@ class ExternalResource extends DataType {
 	}
 
 	/**
+	 * Enable force download
+	 */
+	public function enableForceDownload() {
+		$this->rawValue['forceDownload'] = TRUE;
+	}
+
+	/**
+	 * Enable force download
+	 */
+	public function disableForceDownload() {
+		$this->rawValue['forceDownload'] = FALSE;
+	}
+
+	/**
 	 * @param string $value
 	 * @throws Exception
 	 * @throws \TYPO3\Flow\Resource\Exception
@@ -76,7 +90,7 @@ class ExternalResource extends DataType {
 
 		$username = isset($value['username']) ? $value['username'] : NULL;
 		$password = isset($value['password']) ? $value['password'] : NULL;
-		$this->download($sourceUri, $temporaryFileAndPathname, FALSE, $username, $password);
+		$this->download($sourceUri, $temporaryFileAndPathname, isset($value['forceDownload']) ? (boolean)$value['forceDownload'] : FALSE, $username, $password);
 
 		# Try to add file extenstion if missing
 		if ($fileExtension === '') {
@@ -101,8 +115,11 @@ class ExternalResource extends DataType {
 		$sha1Hash = sha1_file($temporaryFileAndPathname);
 		$resource = $this->resourceManager->getResourceBySha1($sha1Hash);
 		if ($resource === NULL) {
+			$this->logger->log('Import new resource', LOG_DEBUG);
 			$resource = $this->resourceManager->importResource($temporaryFileAndPathname);
 			$resource->setFilename(basename($temporaryFileAndPathname));
+		} else {
+			$this->logger->log('Use existing resource', LOG_DEBUG);
 		}
 
 		$this->temporaryFileAndPathname = $temporaryFileAndPathname;
@@ -150,9 +167,10 @@ class ExternalResource extends DataType {
 	 */
 	protected function download($source, $destination, $force = FALSE, $username = NULL, $password = NULL) {
 		if ($force === FALSE && is_file($destination)) {
+			$this->logger->log(sprintf('External resource "%s" skipped, local file "%s" exist', $source, $destination), LOG_DEBUG);
 			return TRUE;
 		}
-		$fp = fopen($destination, 'w+');
+		$fp = fopen($destination, 'w');
 		if (!$fp) {
 			throw new Exception(sprintf('Unable to download the given file: %s', $source));
 		}
@@ -168,6 +186,8 @@ class ExternalResource extends DataType {
 		curl_close($ch);
 
 		fclose($fp);
+
+		$this->logger->log(sprintf('External resource "%s" downloaded to "%s"', $source, $destination), LOG_DEBUG);
 
 		return TRUE;
 	}
