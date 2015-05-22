@@ -5,9 +5,8 @@ namespace Ttree\ContentRepositoryImporter\Domain\Model;
  * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
  *                                                                                  */
 
-use Ttree\ContentRepositoryImporter\DataType\InvalidArgumentException;
+use Ttree\ContentRepositoryImporter\Exception\InvalidArgumentException;
 use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Utility\Algorithms;
 
 /**
  * Preset Part Definition
@@ -32,7 +31,7 @@ class PresetPartDefinition  {
 	/**
 	 * @var string
 	 */
-	protected $logPrefix;
+	protected $currentImportIdentifier;
 
 	/**
 	 * @var string
@@ -66,18 +65,18 @@ class PresetPartDefinition  {
 
 	/**
 	 * @param array $setting
-	 * @param string $logPrefix
+	 * @param string $currentImportIdentifier
 	 * @throws InvalidArgumentException
 	 */
-	public function __construct(array $setting, $logPrefix = NULL) {
+	public function __construct(array $setting, $currentImportIdentifier) {
 		if (!isset($setting['__currentPresetName'])) {
 			throw new InvalidArgumentException('Missing or invalid "__currentPresetName" in preset part settings', 1426156156);
 		}
-		$this->currentPresetName = $setting['__currentPresetName'];
+		$this->currentPresetName = trim($setting['__currentPresetName']);
 		if (!isset($setting['__currentPartName'])) {
 			throw new InvalidArgumentException('Missing or invalid "__currentPartName" in preset part settings', 1426156155);
 		}
-		$this->currentPartName = $setting['__currentPartName'];
+		$this->currentPartName = trim($setting['__currentPartName']);
 		if (!isset($setting['label']) || !is_string($setting['label'])) {
 			throw new InvalidArgumentException('Missing or invalid "Label" in preset part settings', 1426156157);
 		}
@@ -87,14 +86,14 @@ class PresetPartDefinition  {
 		}
 		$this->dataProviderClassName = (string)$setting['dataProviderClassName'];
 		if (!isset($setting['importerClassName']) || !is_string($setting['importerClassName'])) {
-			throw new InvalidArgumentException('Missing or invalid "dataProviderClassName" in preset part settings', 1426156159);
+			throw new InvalidArgumentException('Missing or invalid "importerClassName" in preset part settings', 1426156159);
 		}
 		$this->importerClassName = (string)$setting['importerClassName'];
 		$this->batchSize = isset($setting['batchSize']) ? (integer)$setting['batchSize'] : NULL;
 		$this->offset = isset($setting['batchSize']) ? 0 : NULL;
 		$this->dataProviderOptions = isset($setting['dataProviderOptions']) ? $setting['dataProviderOptions'] : [];
 		$this->currentBatch = 1;
-		$this->logPrefix = $logPrefix ?: Algorithms::generateRandomString(12);
+		$this->currentImportIdentifier = $currentImportIdentifier;
 	}
 
 	/**
@@ -106,13 +105,20 @@ class PresetPartDefinition  {
 	}
 
 	/**
+	 * @return string
+	 */
+	public function getEventType() {
+		return sprintf('Preset%s:%s', ucfirst($this->currentPresetName), ucfirst($this->currentPartName));
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getCommandArguments() {
 		$arguments = [
 			'presetName' => $this->currentPresetName,
 			'partName' => $this->currentPartName,
-			'logPrefix' => $this->logPrefix,
+			'currentImportIdentifier' => $this->currentImportIdentifier,
 			'dataProviderClassName' => $this->dataProviderClassName,
 			'importerClassName' => $this->importerClassName,
 			'currentBatch' => $this->currentBatch
@@ -136,8 +142,8 @@ class PresetPartDefinition  {
 	/**
 	 * @return string
 	 */
-	public function getLogPrefix() {
-		return $this->logPrefix;
+	public function getCurrentImportIdentifier() {
+		return $this->currentImportIdentifier;
 	}
 
 	/**

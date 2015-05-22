@@ -51,7 +51,7 @@ class HtmlContent extends DataType {
 		}
 
 		// Normalize line break
-		$value = preg_replace('/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/', '\n', $value);
+		$value = preg_replace('/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/', "\n", $value);
 
 		// Process line per line
 		$lines = preg_split("/\\r\\n|\\r|\\n/", $value);

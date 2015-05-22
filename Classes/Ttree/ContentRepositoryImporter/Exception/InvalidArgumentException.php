@@ -1,5 +1,5 @@
 <?php
-namespace Ttree\ContentRepositoryImporter\DataType;
+namespace Ttree\ContentRepositoryImporter\Exception;
 
 /*                                                                                  *
  * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *

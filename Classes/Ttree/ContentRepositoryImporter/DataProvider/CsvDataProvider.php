@@ -5,17 +5,15 @@ namespace Ttree\ContentRepositoryImporter\DataProvider;
  * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
  *                                                                                  */
 
-use Doctrine\DBAL\Configuration;
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DriverManager;
+use Ttree\ContentRepositoryImporter\Exception\InvalidArgumentException;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 
 /**
- * Abstract Data Provider
+ * Csv Data Provider
  */
-abstract class DataProvider implements DataProviderInterface {
+class CsvDataProvider implements DataProviderInterface {
 
 	/**
 	 * @Flow\Inject
@@ -28,11 +26,6 @@ abstract class DataProvider implements DataProviderInterface {
 	 * @var ProcessedNodeService
 	 */
 	protected $processedNodeService;
-
-	/**
-	 * @var array<Connection>
-	 */
-	protected $connections = [];
 
 	/**
 	 * @var integer
@@ -56,10 +49,59 @@ abstract class DataProvider implements DataProviderInterface {
 	protected $options = [];
 
 	/**
+	 * @var string
+	 */
+	protected $csvFilePath;
+
+	/**
 	 * @param array $options
 	 */
 	public function __construct(array $options) {
 		$this->options = $options;
+	}
+
+	/**
+	 * @throws InvalidArgumentException
+	 */
+	public function initializeObject() {
+		if (!isset($this->options['csvFilePath']) || !is_string($this->options['csvFilePath'])) {
+			throw new InvalidArgumentException('Missing or invalid "csvFilePath" in preset part settings', 1429027715);
+		}
+
+		$this->csvFilePath = $this->options['csvFilePath'];
+		if (!is_file($this->csvFilePath)) {
+			throw new \Exception(sprintf('File "%s" not found', $this->csvFilePath), 1427882078);
+		}
+	}
+
+	/**
+	 * @return array
+	 * @throws \Exception
+	 * @throws InvalidArgumentException
+	 */
+	public function fetch() {
+		static $currentLine = 0;
+		$dataResult = array();
+
+		if (($handle = fopen($this->csvFilePath, 'r')) !== FALSE) {
+			while (($data = fgetcsv($handle, 65534, ",")) !== FALSE) {
+				// skip header (maybe is better to set the first offset position instead)
+				if(isset($this->options['skipHeader']) && $this->options['skipHeader'] === TRUE && $currentLine === 0) {
+					$currentLine++;
+					continue;
+				}
+				if ($currentLine >= $this->offset && $currentLine < ($this->offset + $this->limit)) {
+					if (isset($data[0]) && $data[0] !== '') {
+						$this->preProcessRecordData($data);
+						$dataResult[] = $data;
+					}
+				}
+				$currentLine++;
+			}
+			fclose($handle);
+		}
+
+		return $dataResult;
 	}
 
 	/**
@@ -76,22 +118,6 @@ abstract class DataProvider implements DataProviderInterface {
 		$dataProvider->setLimit($limit);
 
 		return $dataProvider;
-	}
-
-	/**
-	 * @return \Doctrine\DBAL\Query\QueryBuilder
-	 */
-	protected function createQuery() {
-		$query = $this->getDatabaseConnection()
-			->createQueryBuilder();
-
-		if ($this->limit > 0) {
-			$query
-				->setFirstResult($this->offset ?: 0)
-				->setMaxResults($this->limit);
-		}
-
-		return $query;
 	}
 
 	/**
@@ -116,17 +142,10 @@ abstract class DataProvider implements DataProviderInterface {
 	}
 
 	/**
-	 * @return Connection
-	 * @throws \Exception
+	 * Can be use to process data in children class
+	 * @param array $data
 	 */
-	protected function getDatabaseConnection() {
-		$sourceName = isset($this->options['source']) ? $this->options['source'] : 'default';
+	protected function preProcessRecordData(&$data) {
 
-		if (isset($this->connections[$sourceName]) && $this->connections[$sourceName] instanceof Connection) {
-			return $this->connections[$sourceName];
-		}
-
-		$this->connections[$sourceName] = DriverManager::getConnection($this->settings['sources'][$sourceName], new Configuration());
-		return $this->connections[$sourceName];
 	}
 }

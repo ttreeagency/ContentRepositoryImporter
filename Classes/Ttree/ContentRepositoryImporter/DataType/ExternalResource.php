@@ -7,7 +7,6 @@ namespace Ttree\ContentRepositoryImporter\DataType;
 
 use Gedmo\Uploadable\MimeType\MimeTypeGuesser;
 use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Cache\Frontend\VariableFrontend;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 use TYPO3\Flow\Resource\ResourceManager;
@@ -32,11 +31,6 @@ class ExternalResource extends DataType {
 	protected $resourceManager;
 
 	/**
-	 * @var VariableFrontend
-	 */
-	protected $downloadCache;
-
-	/**
 	 * @var string
 	 */
 	protected $temporaryFileAndPathname;
@@ -46,6 +40,20 @@ class ExternalResource extends DataType {
 	 */
 	public function getValue() {
 		return parent::getValue();
+	}
+
+	/**
+	 * Enable force download
+	 */
+	public function enableForceDownload() {
+		$this->rawValue['forceDownload'] = TRUE;
+	}
+
+	/**
+	 * Enable force download
+	 */
+	public function disableForceDownload() {
+		$this->rawValue['forceDownload'] = FALSE;
 	}
 
 	/**
@@ -66,52 +74,74 @@ class ExternalResource extends DataType {
 			throw new Exception('Missing filename URI', 1425981084);
 		}
 		$filename = trim($value['filename']);
-		$overrideFilename = isset($value['overrideFilename']) ? trim($value['overrideFilename']) : $filename;
+		$fileExtension = strtolower(trim(pathinfo($filename, PATHINFO_EXTENSION)));
+		$overrideFilename = isset($value['overrideFilename']) ? trim($value['overrideFilename']) : pathinfo($filename, PATHINFO_FILENAME);
+		if ($fileExtension) {
+			$overrideFilename = sprintf('%s.%s', $overrideFilename, $fileExtension);
+		}
 
 		if (!isset($this->options['downloadDirectory'])) {
 			throw new Exception('Missing download directory data type option', 1425981085);
 		}
 		Files::createDirectoryRecursively($this->options['downloadDirectory']);
-		$temporaryFileAndPathname = trim($this->options['downloadDirectory'] . $filename);
 
-		$this->download($sourceUri, $temporaryFileAndPathname);
-		$sha1Hash = sha1_file($temporaryFileAndPathname);
+		$temporaryFilename = isset($value['temporaryPrefix']) ? trim(sprintf('%s-%s', $value['temporaryPrefix'], $overrideFilename)) : trim(sprintf('%s%s', $overrideFilename));
+		$temporaryFileAndPathname = sprintf('%s%s', $this->options['downloadDirectory'], $temporaryFilename);
+
+		$username = isset($value['username']) ? $value['username'] : NULL;
+		$password = isset($value['password']) ? $value['password'] : NULL;
+		$this->download($sourceUri, $temporaryFileAndPathname, isset($value['forceDownload']) ? (boolean)$value['forceDownload'] : FALSE, $username, $password);
 
 		# Try to add file extenstion if missing
-		if (!$this->downloadCache->has($sha1Hash)) {
-			$fileExtension = pathinfo($temporaryFileAndPathname, PATHINFO_EXTENSION);
-			if (trim($fileExtension) === '') {
-				$mimeTypeGuesser = new MimeTypeGuesser();
-				$mimeType = $mimeTypeGuesser->guess($temporaryFileAndPathname);
-				$this->logger->log(sprintf('Try to guess mime type for "%s" (%s), result: %s', $sourceUri, $filename, $mimeType), LOG_DEBUG);
-				$fileExtension = MediaTypes::getFilenameExtensionFromMediaType($mimeType);
-				if ($fileExtension !== '') {
-					$oldTemporaryDestination = $temporaryFileAndPathname;
-					$temporaryDestination = $temporaryFileAndPathname . '.' . $fileExtension;
-					copy($oldTemporaryDestination, $temporaryDestination);
-					$this->logger->log(sprintf('Rename "%s" to "%s"', $oldTemporaryDestination, $temporaryDestination), LOG_DEBUG);
+		if ($fileExtension === '') {
+			$mimeTypeGuesser = new MimeTypeGuesser();
+			$mimeType = $mimeTypeGuesser->guess($temporaryFileAndPathname);
+			$this->logger->log(sprintf('Try to guess mime type for "%s" (%s), result: %s', $sourceUri, $filename, $mimeType), LOG_DEBUG);
+			$fileExtension = MediaTypes::getFilenameExtensionFromMediaType($mimeType);
+			if ($fileExtension !== '') {
+				$oldTemporaryDestination = $temporaryFileAndPathname;
+				$temporaryFileAndPathname = sprintf('%s.%s', $temporaryFileAndPathname, $fileExtension);
+				if (!is_file($temporaryFileAndPathname)) {
+					copy($oldTemporaryDestination, $temporaryFileAndPathname);
+					$this->logger->log(sprintf('Rename "%s" to "%s"', $oldTemporaryDestination, $temporaryFileAndPathname), LOG_DEBUG);
 				}
 			}
 		}
+		# Trim border
+		if (isset($value['trimBorder']) && $value['trimBorder'] === TRUE) {
+			$this->trimImageBorder($temporaryFileAndPathname);
+		}
 
+		$sha1Hash = sha1_file($temporaryFileAndPathname);
 		$resource = $this->resourceManager->getResourceBySha1($sha1Hash);
 		if ($resource === NULL) {
+			$this->logger->log('Import new resource', LOG_DEBUG);
 			$resource = $this->resourceManager->importResource($temporaryFileAndPathname);
-			if ($filename !== $overrideFilename) {
-				$resource->setFilename($overrideFilename);
-			}
+			$resource->setFilename(basename($temporaryFileAndPathname));
+		} else {
+			$this->logger->log('Use existing resource', LOG_DEBUG);
 		}
 
 		$this->temporaryFileAndPathname = $temporaryFileAndPathname;
 
-		$this->downloadCache->set($sha1Hash, [
-			'sha1Hash' => $sha1Hash,
-			'filename' => $filename,
-			'sourceUri' => $sourceUri,
-			'temporaryFileAndPathname' => $temporaryFileAndPathname
-		]);
-
 		$this->value = $resource;
+	}
+
+	/**
+	 * @param string $fileAndPathname
+	 */
+	protected function trimImageBorder($fileAndPathname) {
+		$isProcessed = sprintf('%s.trimmed', $fileAndPathname);
+		if (is_file($isProcessed)) {
+			return;
+		}
+		$isImage = @getimagesize($fileAndPathname) ? TRUE : FALSE;
+		if (!$isImage) {
+			return;
+		}
+		$command = sprintf('convert "%s" -trim "%s" > /dev/null 2> /dev/null', $fileAndPathname, $fileAndPathname);
+		exec($command, $output, $result);
+		touch($isProcessed);
 	}
 
 	/**
@@ -135,23 +165,29 @@ class ExternalResource extends DataType {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	protected function download($source, $destination, $force = FALSE) {
+	protected function download($source, $destination, $force = FALSE, $username = NULL, $password = NULL) {
 		if ($force === FALSE && is_file($destination)) {
+			$this->logger->log(sprintf('External resource "%s" skipped, local file "%s" exist', $source, $destination), LOG_DEBUG);
 			return TRUE;
 		}
-		$fp = fopen($destination, 'w+');
+		$fp = fopen($destination, 'w');
 		if (!$fp) {
 			throw new Exception(sprintf('Unable to download the given file: %s', $source));
 		}
 
-		$ch = curl_init(str_replace(" ","%20",$source));
+		$ch = curl_init(str_replace(" ", "%20", $source));
 		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
 		curl_setopt($ch, CURLOPT_FILE, $fp);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		if ($username !== NULL && $password !== NULL) {
+			curl_setopt($ch, CURLOPT_USERPWD, sprintf('%s:%s', $username, $password));
+		}
 		curl_exec($ch);
 		curl_close($ch);
 
 		fclose($fp);
+
+		$this->logger->log(sprintf('External resource "%s" downloaded to "%s"', $source, $destination), LOG_DEBUG);
 
 		return TRUE;
 	}
