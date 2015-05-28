@@ -64,6 +64,11 @@ class PresetPartDefinition  {
 	protected $offset;
 
 	/**
+	 * @var boolean
+	 */
+	protected $debug = FALSE;
+
+	/**
 	 * @param array $setting
 	 * @param string $currentImportIdentifier
 	 * @throws InvalidArgumentException
@@ -94,6 +99,10 @@ class PresetPartDefinition  {
 		$this->dataProviderOptions = isset($setting['dataProviderOptions']) ? $setting['dataProviderOptions'] : [];
 		$this->currentBatch = 1;
 		$this->currentImportIdentifier = $currentImportIdentifier;
+		$this->debug = isset($setting['debug']) ? (boolean)$setting['label'] : FALSE;
+		if ($this->debug === TRUE) {
+			$this->batchSize = 1;
+		}
 	}
 
 	/**
@@ -137,6 +146,13 @@ class PresetPartDefinition  {
 	 */
 	public function getLabel() {
 		return $this->label;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function isDebug() {
+		return $this->debug;
 	}
 
 	/**

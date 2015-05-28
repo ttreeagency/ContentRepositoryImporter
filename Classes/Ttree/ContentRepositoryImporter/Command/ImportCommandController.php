@@ -129,7 +129,7 @@ class ImportCommandController extends CommandController {
 				$this->outputLine('Skipped');
 				return;
 			}
-			if ($partSetting->getBatchSize()) {
+			if ($partSetting->getBatchSize() && $partSetting->isDebug() === FALSE) {
 				while (($count = $this->executeCommand($partSetting)) > 0) {
 					$partSetting->nextBatch();
 				}
