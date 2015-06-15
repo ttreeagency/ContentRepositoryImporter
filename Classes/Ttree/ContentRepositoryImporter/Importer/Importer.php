@@ -204,10 +204,12 @@ abstract class Importer implements ImporterInterface {
 	 */
 	protected function processBatch(NodeTemplate $nodeTemplate = NULL) {
 		$records = $this->dataProvider->fetch();
+		$records = $this->preProcessing($records);
 		array_walk($records, function ($data) use ($nodeTemplate) {
 			$this->processRecord($nodeTemplate, $data);
 			++$this->processedRecords;
 		});
+		$this->postProcessing($records);
 	}
 
 	/**
@@ -221,6 +223,25 @@ abstract class Importer implements ImporterInterface {
 			}
 			$nodeTemplate->removeProperty($propertyName);
 		}
+	}
+
+	/**
+	 * Preprocess RAW data
+	 *
+	 * @param array $records
+	 * @return array
+	 */
+	protected function preProcessing(array $records) {
+		return $records;
+	}
+
+	/**
+	 * Postprocessing
+	 *
+	 * @param array $records
+	 */
+	protected function postProcessing(array $records) {
+
 	}
 
 	/**
