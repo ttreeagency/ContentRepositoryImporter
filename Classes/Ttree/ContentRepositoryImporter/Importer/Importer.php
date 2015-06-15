@@ -186,10 +186,14 @@ abstract class Importer implements ImporterInterface {
 		$context = $this->contextFactory->create($contextConfiguration);
 		$this->rootNode = $context->getRootNode();
 
-		$siteNodePath = $this->options['siteNodePath'];
-		$this->siteNode = $this->rootNode->getNode($siteNodePath);
-		if ($this->siteNode === NULL) {
-			throw new Exception(sprintf('Site node not found (%s)', $siteNodePath), 1425077201);
+		if (isset($this->options['siteNodePath'])) {
+			$siteNodePath = $this->options['siteNodePath'];
+			$this->siteNode = $this->rootNode->getNode($siteNodePath);
+			if ($this->siteNode === NULL) {
+				throw new Exception(sprintf('Site node not found (%s)', $siteNodePath), 1425077201);
+			}
+		} else {
+			$this->log('siteNodePath is not defined', LOG_DEBUG);
 		}
 	}
 
