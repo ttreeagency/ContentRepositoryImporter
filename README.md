@@ -42,7 +42,7 @@ class BasicDataProvider extends DataProvider {
 		while ($demoRecord = $statement->fetch()) {
 			$result[] = [
 				'__externalIdentifier' => (integer)$demoRecord['id'],
-				'name' => String::create($reportType['name'])->getValue()
+				'name' => String::create($demoRecord['name'])->getValue()
 			];
 		}
 
@@ -97,7 +97,7 @@ Ttree:
             someOption: 'Some option that will be available in the options property of the data provider'
           importerClassName: 'Your\Package\Importer\Importer\PageImporter'
           importerOptions:
-            siteNodePath: '/my-site'
+            siteNodePath: '/sites/my-site'
             someOption: 'Some option that will be available in the options property of the importer'
           batchSize': 120
 
