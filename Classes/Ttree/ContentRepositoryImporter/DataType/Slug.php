@@ -11,17 +11,17 @@ use TYPO3\Flow\Annotations as Flow;
 /**
  * String Data Type
  */
-class Slug extends DataType {
+class Slug extends DataType
+{
+    protected $value;
 
-	protected $value;
-
-	/**
-	 * @param string $value
-	 */
-	protected function initializeValue($value) {
-		$value = new String($value);
-		$slugify = new Slugify();
-		$this->value = $slugify->slugify($value->getValue());
-	}
-
+    /**
+     * @param string $value
+     */
+    protected function initializeValue($value)
+    {
+        $value = new String($value);
+        $slugify = new Slugify();
+        $this->value = $slugify->slugify($value->getValue());
+    }
 }

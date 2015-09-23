@@ -10,17 +10,16 @@ use TYPO3\Flow\Annotations as Flow;
 /**
  * Data Type Interface
  */
-interface DataTypeInterface {
+interface DataTypeInterface
+{
+    /**
+     * @param mixed $value
+     * @return $this
+     */
+    public static function create($value);
 
-	/**
-	 * @param mixed $value
-	 * @return $this
-	 */
-	public static function create($value);
-
-	/**
-	 * @return mixed
-	 */
-	public function getValue();
-
+    /**
+     * @return mixed
+     */
+    public function getValue();
 }

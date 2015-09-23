@@ -4,8 +4,9 @@
     "description": "Helper package to import data in the TYPO3CR",
     "require": {
         "typo3/flow": "*",
-        "ezyang/htmlpurifier": "dev-master",
-        "cocur/slugify": "dev-master"
+        "ezyang/htmlpurifier": "*",
+        "cocur/slugify": "*",
+        "typo3/neos": "*"
     },
     "autoload": {
         "psr-0": {
