@@ -3,9 +3,6 @@ ContentRepositoryImporter
 
 This package contains generic utility to help importing data in the TYPO3 Content Repository (TYPO3CR) used by Neos.
 
-**This package is currently in developement, change in the API can happen, as soon as we definea stable state 
-we'll launch version 1.0. Any contributions and comments are welcome.**
-
 What's included ?
 -----------------
 
@@ -20,9 +17,9 @@ A basic DataProvider
 --------------------
 
 Every dataprovider must extends the ``DataProvider`` abstract class or implements the 
-interface ```DtaProviderInterface```. Check the source code of the abstract data provider, there's some useful things.
+interface ```DataProviderInterface```. Check the source code of the abstract data provider, there's some useful things.
 
-It's important to update the ```cont``` property when you process data from the external source. During the processing,
+It's important to update the ```count``` property when you process data from the external source. During the processing,
 you can decide to skip some data (invalid data, missing value, ...) so we can not use the SQL count feature.
 
 ```php
