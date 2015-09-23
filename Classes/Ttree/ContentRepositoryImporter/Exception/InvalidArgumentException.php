@@ -11,6 +11,6 @@ use TYPO3\Flow\Exception;
 /**
  * Invalid Argument Exception
  */
-class InvalidArgumentException extends Exception {
-
+class InvalidArgumentException extends Exception
+{
 }

@@ -15,38 +15,39 @@ use TYPO3\Flow\Annotations as Flow;
  *
  * @Flow\Scope("singleton")
  */
-class ProcessedNodeService  {
+class ProcessedNodeService
+{
+    /**
+     * @Flow\Inject
+     * @var ImportService
+     */
+    protected $importService;
 
-	/**
-	 * @Flow\Inject
-	 * @var ImportService
-	 */
-	protected $importService;
+    /**
+     * @Flow\Inject
+     * @var RecordMappingRepository
+     */
+    protected $recordMappingRepository;
 
-	/**
-	 * @Flow\Inject
-	 * @var RecordMappingRepository
-	 */
-	protected $recordMappingRepository;
+    /**
+     * @param string $importerClassName
+     * @param string $externalIdentifier
+     * @param string $externalRelativeUri
+     * @param string $nodeIdentifier
+     * @param string $nodePath
+     */
+    public function set($importerClassName, $externalIdentifier, $externalRelativeUri, $nodeIdentifier, $nodePath)
+    {
+        $this->importService->addOrUpdateRecordMapping($importerClassName, $externalIdentifier, $externalRelativeUri, $nodeIdentifier, $nodePath);
+    }
 
-	/**
-	 * @param string $importerClassName
-	 * @param string $externalIdentifier
-	 * @param string $externalRelativeUri
-	 * @param string $nodeIdentifier
-	 * @param string $nodePath
-	 */
-	public function set($importerClassName, $externalIdentifier, $externalRelativeUri, $nodeIdentifier, $nodePath) {
-		$this->importService->addOrUpdateRecordMapping($importerClassName, $externalIdentifier, $externalRelativeUri, $nodeIdentifier, $nodePath);
-	}
-
-	/**
-	 * @param string $importerClassName
-	 * @param string $externalIdentifier
-	 * @return RecordMapping
-	 */
-	public function get($importerClassName, $externalIdentifier) {
-		return $this->recordMappingRepository->findOneByImporterClassNameAndExternalIdentifier($importerClassName, $externalIdentifier);
-	}
-
+    /**
+     * @param string $importerClassName
+     * @param string $externalIdentifier
+     * @return RecordMapping
+     */
+    public function get($importerClassName, $externalIdentifier)
+    {
+        return $this->recordMappingRepository->findOneByImporterClassNameAndExternalIdentifier($importerClassName, $externalIdentifier);
+    }
 }

@@ -13,25 +13,26 @@ use TYPO3\Neos\EventLog\Domain\Model\NodeEvent;
  *
  * @Flow\Entity
  */
-class Event extends NodeEvent  {
+class Event extends NodeEvent
+{
+    /**
+     * @var string
+     */
+    protected $externalIdentifier;
 
-	/**
-	 * @var string
-	 */
-	protected $externalIdentifier;
+    /**
+     * @return string
+     */
+    public function getExternalIdentifier()
+    {
+        return $this->externalIdentifier;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getExternalIdentifier() {
-		return $this->externalIdentifier;
-	}
-
-	/**
-	 * @param string $externalIdentifier
-	 */
-	public function setExternalIdentifier($externalIdentifier) {
-		$this->externalIdentifier = $externalIdentifier;
-	}
-
+    /**
+     * @param string $externalIdentifier
+     */
+    public function setExternalIdentifier($externalIdentifier)
+    {
+        $this->externalIdentifier = $externalIdentifier;
+    }
 }

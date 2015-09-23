@@ -14,47 +14,46 @@ use TYPO3\TYPO3CR\Domain\Model\NodeTemplate;
 /**
  * Importer Interface
  */
-interface ImporterInterface {
+interface ImporterInterface
+{
+    /**
+     * @param DataProviderInterface $dataProvider
+     */
+    public function initialize(DataProviderInterface $dataProvider);
 
-	/**
-	 * @param DataProviderInterface $dataProvider
-	 */
-	public function initialize(DataProviderInterface $dataProvider);
+    /**
+     * Import from the current DataProvider
+     */
+    public function process();
 
-	/**
-	 * Import from the current DataProvider
-	 */
-	public function process();
+    /**
+     * @param NodeTemplate $nodeTemplate
+     * @param array $data
+     */
+    public function processRecord(NodeTemplate $nodeTemplate, array $data);
 
-	/**
-	 * @param NodeTemplate $nodeTemplate
-	 * @param array $data
-	 */
-	public function processRecord(NodeTemplate $nodeTemplate, array $data);
+    /**
+     * @return DataProviderInterface
+     */
+    public function getDataProvider();
 
-	/**
-	 * @return DataProviderInterface
-	 */
-	public function getDataProvider();
+    /**
+     * @return ImportService
+     */
+    public function getImportService();
 
-	/**
-	 * @return ImportService
-	 */
-	public function getImportService();
+    /**
+     * @param Event $event
+     */
+    public function setCurrentEvent(Event $event);
 
-	/**
-	 * @param Event $event
-	 */
-	public function setCurrentEvent(Event $event);
+    /**
+     * @return Event
+     */
+    public function getCurrentEvent();
 
-	/**
-	 * @return Event
-	 */
-	public function getCurrentEvent();
-
-	/**
-	 * @return integer
-	 */
-	public function getProcessedRecords();
-
+    /**
+     * @return integer
+     */
+    public function getProcessedRecords();
 }

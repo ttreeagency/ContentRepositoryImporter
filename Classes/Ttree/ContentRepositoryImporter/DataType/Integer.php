@@ -10,14 +10,14 @@ use TYPO3\Flow\Annotations as Flow;
 /**
  * String Data Type
  */
-class Integer extends String {
-
-	/**
-	 * @return integer
-	 */
-	public function getValue() {
-		$this->initializeValue($this->rawValue);
-		return (integer)$this->value;
-	}
-
+class Integer extends String
+{
+    /**
+     * @return integer
+     */
+    public function getValue()
+    {
+        $this->initializeValue($this->rawValue);
+        return (integer)$this->value;
+    }
 }
