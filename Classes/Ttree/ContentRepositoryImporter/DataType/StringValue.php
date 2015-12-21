@@ -10,7 +10,7 @@ use TYPO3\Flow\Annotations as Flow;
 /**
  * String Data Type
  */
-class String extends DataType
+class StringValue extends DataType
 {
     /**
      * @param string $value

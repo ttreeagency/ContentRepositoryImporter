@@ -10,7 +10,7 @@ use TYPO3\Flow\Annotations as Flow;
 /**
  * String Data Type
  */
-class Integer extends String
+class Integer extends StringValue
 {
     /**
      * @return integer

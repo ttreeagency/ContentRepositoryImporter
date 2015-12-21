@@ -20,7 +20,7 @@ class Slug extends DataType
      */
     protected function initializeValue($value)
     {
-        $value = new String($value);
+        $value = new StringValue($value);
         $slugify = new Slugify();
         $this->value = $slugify->slugify($value->getValue());
     }
