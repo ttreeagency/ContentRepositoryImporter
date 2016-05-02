@@ -54,6 +54,16 @@ class CsvDataProvider implements DataProviderInterface
     protected $csvFilePath;
 
     /**
+     * @var string
+     */
+    protected $csvDelimiter = ',';
+
+    /**
+     * @var string
+     */
+    protected $csvEnclosure = '"';
+
+    /**
      * @param array $options
      */
     public function __construct(array $options)
@@ -74,6 +84,16 @@ class CsvDataProvider implements DataProviderInterface
         if (!is_file($this->csvFilePath)) {
             throw new \Exception(sprintf('File "%s" not found', $this->csvFilePath), 1427882078);
         }
+
+        if (isset($this->options['csvDelimiter'])) {
+            $this->csvDelimiter = $this->options['csvDelimiter'];
+        }
+
+        if (isset($this->options['csvEnclosure'])) {
+            $this->csvDelimiter = $this->options['csvEnclosure'];
+        }
+
+        $this->logger->log(sprintf('%s will read from "%s", using %s as delimiter and %s as enclosure character.', get_class($this), $this->csvFilePath, $this->csvDelimiter, $this->csvEnclosure), LOG_DEBUG);
     }
 
     /**
@@ -87,7 +107,7 @@ class CsvDataProvider implements DataProviderInterface
         $dataResult = array();
 
         if (($handle = fopen($this->csvFilePath, 'r')) !== false) {
-            while (($data = fgetcsv($handle, 65534, ",")) !== false) {
+            while (($data = fgetcsv($handle, 65534, $this->csvDelimiter, $this->csvEnclosure)) !== false) {
                 // skip header (maybe is better to set the first offset position instead)
                 if (isset($this->options['skipHeader']) && $this->options['skipHeader'] === true && $currentLine === 0) {
                     $currentLine++;
