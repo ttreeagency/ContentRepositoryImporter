@@ -201,7 +201,7 @@ abstract class Importer implements ImporterInterface
                 throw new Exception(sprintf('Site node not found (%s)', $siteNodePath), 1425077201);
             }
         } else {
-            $this->log('siteNodePath is not defined', LOG_DEBUG);
+            $this->log(get_class($this) . ': siteNodePath is not defined. Please make sure to set the target siteNodePath in your importer options.', LOG_WARNING);
         }
     }
 

@@ -132,6 +132,7 @@ class ImportCommandController extends CommandController
                 $this->outputLine('Skipped');
                 return;
             }
+
             if ($partSetting->getBatchSize() && $partSetting->isDebug() === false) {
                 while (($count = $this->executeCommand($partSetting)) > 0) {
                     $partSetting->nextBatch();
@@ -144,10 +145,12 @@ class ImportCommandController extends CommandController
         $this->importService->stop();
         $import = $this->importService->getLastImport();
         $this->outputLine();
-        $this->outputLine('Import finished');
+        $this->outputLine('Import finished.');
         $this->outputLine(sprintf('  Started   %s', $import->getStart()->format(DATE_RFC2822)));
         $this->outputLine(sprintf('  Finished  %s', $import->getEnd()->format(DATE_RFC2822)));
         $this->outputLine(sprintf('  Runtime   %d seconds', $import->getElapsedTime()));
+        $this->outputLine();
+        $this->outputLine('See log for more details and possible errors.');
     }
 
     /**
@@ -158,7 +161,7 @@ class ImportCommandController extends CommandController
     {
         try {
             $this->importService->addEvent(sprintf('%s:Started', $partSetting->getEventType()), null, $partSetting->getCommandArguments());
-            $this->importService->persisteEntities();
+            $this->importService->persistEntities();
 
             $startTime = microtime(true);
 
@@ -177,7 +180,7 @@ class ImportCommandController extends CommandController
             $this->elapsedTime += $elapsedTime;
             $this->outputLine('  #%d %d records in %dms, %d ms per record, %d ms per batch (avg)', [$partSetting->getCurrentBatch(), $count, $elapsedTime, $elapsedTime / $count, $this->elapsedTime / $this->batchCounter]);
             $this->importService->addEvent(sprintf('%s:Ended', $partSetting->getEventType()), null, $partSetting->getCommandArguments());
-            $this->importService->persisteEntities();
+            $this->importService->persistEntities();
             return $count;
         } catch (\Exception $exception) {
             $this->logger->logException($exception);
