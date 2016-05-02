@@ -130,7 +130,8 @@ this data provider is `Ttree\ContentRepositoryImporter\DataProvider\CsvDataProvi
 The following options can be passed to the data provider:
 
 - `csvFilePath`: the full path and filename leading to the file to import
-- `csvDelimiter`: the delimiter used in the CSV file (default: ",")
+- `csvDelimiter`: the delimiter used in the CSV file (default: `,`)
+- `csvEnclosure`: the character which is used for enclosing the values (default: `"`)
 - `skipHeader`: if the first line in the CSV file should be ignored (default: false)
 
 Here is an example for a preset using the CSV Data Provider:
@@ -147,6 +148,7 @@ Ttree:
           dataProviderOptions:
             csvFilePath: '/tmp/Products.csv'
             csvDelimiter: ';'
+            csvEnclosure: '"'
             skipHeader: true
           importerClassName: 'Acme\MyProductImporter\Service\Import\ProductImporter'
           importerOptions:
