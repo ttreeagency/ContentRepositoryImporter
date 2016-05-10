@@ -121,6 +121,13 @@ You can also filter the preset steps:
 flow import:batch --preset base --parts page,pageContent
 ```
 
+For testing purposes, or if you would like to override the value definied in your preset, you can also specify the number
+of records which should be imported at a time in an isolated sub-process:
+
+```
+flow import:batch --preset base --batch-size 50
+```
+
 CSV Data Provider
 -----------------
 
