@@ -12,7 +12,6 @@ use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Importer\Importer;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Cli\CommandController;
-use TYPO3\Flow\Configuration\ConfigurationManager;
 use TYPO3\Flow\Core\Booting\Scripts;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Log\SystemLoggerInterface;
@@ -93,14 +92,6 @@ class ImportCommandController extends CommandController
     }
 
     /**
-     * Remove all import event from the event log
-     */
-    public function flushEventLogCommand()
-    {
-        $this->eventLogRepository->removeAll();
-    }
-
-    /**
      * Run batch import
      *
      * This executes a batch import as configured in the settings for the specified preset. Optionally the "parts" can
@@ -174,7 +165,7 @@ class ImportCommandController extends CommandController
     {
         try {
             $this->importService->addEvent(sprintf('%s:Started', $partSetting->getEventType()), null, $partSetting->getCommandArguments());
-            $this->importService->persisteEntities();
+            $this->importService->persistEntities();
 
             $startTime = microtime(true);
 
@@ -193,7 +184,7 @@ class ImportCommandController extends CommandController
             $this->elapsedTime += $elapsedTime;
             $this->outputLine('  #%d %d records in %dms, %d ms per record, %d ms per batch (avg)', [$partSetting->getCurrentBatch(), $count, $elapsedTime, $elapsedTime / $count, $this->elapsedTime / $this->batchCounter]);
             $this->importService->addEvent(sprintf('%s:Ended', $partSetting->getEventType()), null, $partSetting->getCommandArguments());
-            $this->importService->persisteEntities();
+            $this->importService->persistEntities();
             return $count;
         } catch (\Exception $exception) {
             $this->logger->logException($exception);
@@ -241,4 +232,17 @@ class ImportCommandController extends CommandController
             $this->quit(1);
         }
     }
+
+    /**
+     * Clean up event log
+     *
+     * This command removes all Neos event log entries caused by the importer.
+     *
+     * @return void
+     */
+    public function flushEventLogCommand()
+    {
+        $this->eventLogRepository->removeAll();
+    }
+
 }

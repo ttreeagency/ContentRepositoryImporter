@@ -76,7 +76,7 @@ class EventLogAspect
     public function flushEvents(JoinPointInterface $joinPoint)
     {
         try {
-            $this->importService->persisteEntities();
+            $this->importService->persistEntities();
             $this->nodeDataRepository->persistEntities();
         } catch (\Exception $exception) {
             $this->logger->logException($exception);
