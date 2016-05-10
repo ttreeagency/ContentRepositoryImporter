@@ -256,6 +256,15 @@ abstract class Importer implements ImporterInterface
     }
 
     /**
+     * Checks if processing / import of the record specified by $externalIdentifier should be skipped.
+     *
+     * The following criteria for skipping the processing exist:
+     *
+     * 1) a record with the given external identifier already has been processed in the past
+     * 2) a node with a node name equal to what a new node would have already exists
+     *
+     * These criteria can be enabled or disabled through $skipExistingNode and $skipAlreadyProcessed.
+     *
      * @param string $externalIdentifier
      * @param string $nodeName
      * @param NodeInterface $storageNode
