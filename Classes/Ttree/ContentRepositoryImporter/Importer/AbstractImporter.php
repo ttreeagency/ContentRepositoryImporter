@@ -6,6 +6,7 @@ namespace Ttree\ContentRepositoryImporter\Importer;
  */
 
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
+use Ttree\ContentRepositoryImporter\DataType\Slug;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
@@ -13,8 +14,10 @@ use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Log\SystemLoggerInterface;
+use TYPO3\Flow\Utility\Arrays;
 use TYPO3\TYPO3CR\Domain\Model\NodeInterface;
 use TYPO3\TYPO3CR\Domain\Model\NodeTemplate;
+use TYPO3\TYPO3CR\Domain\Model\NodeType;
 use TYPO3\TYPO3CR\Domain\Repository\NodeDataRepository;
 use TYPO3\TYPO3CR\Domain\Service\ContextFactoryInterface;
 use TYPO3\TYPO3CR\Domain\Service\NodeTypeManager;
@@ -24,6 +27,58 @@ use TYPO3\TYPO3CR\Domain\Service\NodeTypeManager;
  */
 abstract class AbstractImporter implements ImporterInterface
 {
+    /**
+     * Key name for getExternalIdentifierFromRecordData() to determine the external identifier of a record
+     * from $commandData. Set this to the actual key (or nested key path, like 'foo.bar.baz') in the concrete
+     * import scenario or override getExternalIdentifierFromRecordData().
+     *
+     * @var string
+     * @api
+     */
+    protected $externalIdentifierDataKey = 'id';
+
+    /**
+     * Key name for getLabelFromCommandData() to determine a meaningful label for a record from $commandData.
+     * Set this to the actual key (or nested key path) in the concrete import scenario or override getLabelFromCommandData()
+     *
+     * @var string
+     * @api
+     */
+    protected $labelDataKey = 'label';
+
+    /**
+     * If set, names of new nodes created by this importer will be prefixed with the given string
+     *
+     * @var string
+     * @api
+     */
+    protected $nodeNamePrefix;
+
+    /**
+     * If your concrete importer processes commands only for one specific node type (for example, a Product node type),
+     * you can specify that node type name here (for example "Acme.Demo:Product").
+     *
+     * If your importer needs to work with multiple node types, you may need to implement your own processRecord() method.
+     *
+     * @var string
+     * @api
+     */
+    protected $nodeTypeName;
+
+    /**
+     * "Main" node type. Will be set by initializeNodeTemplates()
+     *
+     * @var NodeType
+     */
+    protected $nodeType;
+
+    /**
+     * "Main" node template. Will be set by initializeNodeTemplates()
+     *
+     * @var NodeTemplate
+     */
+    protected $nodeTemplate;
+
     /**
      * @Flow\Inject
      * @var SystemLoggerInterface
@@ -207,6 +262,23 @@ abstract class AbstractImporter implements ImporterInterface
     }
 
     /**
+     * Starts batch processing all commands
+     *
+     * This is just an example. You need to override this method in your concrete importer.
+     *
+     * @return void
+     * @api
+     */
+    public function process()
+    {
+        $this->initializeStorageNode('example/sub/path/storage', 'storage', 'Example Storage', 'example-storage');
+        $this->initializeNodeTemplates();
+
+        $nodeTemplate = new NodeTemplate();
+        $this->processBatch($nodeTemplate);
+    }
+
+    /**
      * Import data from the given data provider
      *
      * @param NodeTemplate $nodeTemplate
@@ -224,6 +296,52 @@ abstract class AbstractImporter implements ImporterInterface
             ++$this->processedRecords;
         });
         $this->postProcessing($records);
+    }
+
+    /**
+     * Processes a single record
+     *
+     * Override this method if you need a different approach.
+     *
+     * @param NodeTemplate $nodeTemplate
+     * @param array $data
+     * @return NodeInterface
+     * @throws \Exception
+     * @api
+     */
+    public function processRecord(NodeTemplate $nodeTemplate, array $data)
+    {
+        $this->unsetAllNodeTemplateProperties($nodeTemplate);
+
+        $externalIdentifier = $this->getExternalIdentifierFromRecordData($data);
+        $nodeName = $this->renderNodeName($externalIdentifier);
+        if (!isset($data['uriPathSegment'])) {
+            $data['uriPathSegment'] = Slug::create($this->getLabelFromRecordData($data))->getValue();
+        }
+
+        $recordMapping = $this->getNodeProcessing($externalIdentifier);
+        if ($recordMapping !== null) {
+            $node = $this->storageNode->getContext()->getNodeByIdentifier($recordMapping->getNodeIdentifier());
+            if ($node === null) {
+                throw new \Exception(sprintf('Failed retrieving existing node for update. External identifier: %s Node identifier: %s. Maybe the record mapping in the database does not match the existing (imported) nodes anymore.', $externalIdentifier, $recordMapping->getNodeIdentifier()), 1462971366085);
+            }
+            $somethingChanged = $this->applyProperties($data, $node);
+            if ($somethingChanged) {
+                $this->importService->addEventMessage('Node:Processed:Updated', sprintf('Updating existing node %s (%s)', $node->getPath(), $node->getIdentifier()), LOG_INFO, $this->currentEvent);
+            } else {
+                $this->importService->addEventMessage('Node:Processed:Skipped', sprintf('Skipping unchanged node %s (%s)', $node->getPath(), $node->getIdentifier()), LOG_INFO, $this->currentEvent);
+            }
+
+        } else {
+            $nodeTemplate->setNodeType($this->nodeType);
+            $nodeTemplate->setName($nodeName);
+            $this->applyProperties($data, $nodeTemplate);
+
+            $node = $this->storageNode->createNodeFromTemplate($nodeTemplate);
+            $this->registerNodeProcessing($node, $externalIdentifier);
+        }
+
+        return $node;
     }
 
     /**
@@ -352,5 +470,97 @@ abstract class AbstractImporter implements ImporterInterface
             throw new Exception('Invalid severity value', 1426868867);
         }
         $this->importService->addEventMessage(sprintf('Record:Import:Log:%s', $this->severityLabels[$severity]), $message, $severity, $this->currentEvent);
+    }
+
+    /**
+     * Returns the external identifier of a record by looking it up in $data
+     *
+     * Either override this method for your own purpose or simply set $this->externalIdentifierDataKey
+     *
+     * @param array $data
+     * @return string
+     * @throws \Exception
+     * @api
+     */
+    protected function getExternalIdentifierFromRecordData(array $data)
+    {
+        $externalIdentifier = Arrays::getValueByPath($data, $this->externalIdentifierDataKey);
+        if ($externalIdentifier === null) {
+            throw new \Exception('Could not determine external identifier from record data. See ' . self::class . ' for more information.', 1462968317292);
+        }
+        return (string)$externalIdentifier;
+    }
+
+    /**
+     * Render a valid node name for a new Node based on the current record
+     *
+     * @param string $externalIdentifier External identifier of the current record
+     * @return string
+     */
+    protected function renderNodeName($externalIdentifier)
+    {
+        return Slug::create(($this->nodeNamePrefix !== null ? $this->nodeNamePrefix : uniqid()) . $externalIdentifier)->getValue();
+    }
+
+    /**
+     * Returns a label for a record by looking it up in $data
+     *
+     * Either override this method for your own purpose or simply set $this->labelDataKey
+     *
+     * @param array $data
+     * @return string
+     * @throws \Exception
+     * @api
+     */
+    protected function getLabelFromRecordData(array $data)
+    {
+        $label = Arrays::getValueByPath($data, $this->labelDataKey);
+        if ($label === null) {
+            throw new \Exception('Could not determine label from record data (key: ' . $this->labelDataKey . '). See ' . self::class . ' for more information.', 1462968958372);
+        }
+        return (string)$label;
+    }
+
+
+    /**
+     * Make sure that a (document) node exists which acts as a parent for nodes imported by this importer.
+     *
+     * The storage node is either created or just retrieved and finally stored in $this->storageNode.
+     *
+     * @param string $nodePath Absolute or relative (to the site node) node path of the storage node
+     * @param string $nodeName Just the node name of the storage node
+     * @param string $title Title for the storage node document
+     * @param string $uriPathSegment Uri path segment for the storage node
+     * @return void
+     * @throws \TYPO3\TYPO3CR\Exception\NodeTypeNotFoundException
+     */
+    protected function initializeStorageNode($nodePath, $nodeName, $title, $uriPathSegment)
+    {
+        $storageNodeTemplate = new NodeTemplate();
+        $storageNodeTemplate->setNodeType($this->nodeTypeManager->getNodeType('TYPO3.Neos.NodeTypes:Page'));
+
+        $this->storageNode = $this->siteNode->getNode($nodePath);
+        if ($this->storageNode === null) {
+            $storageNodeTemplate->setProperty('title', $title);
+            $storageNodeTemplate->setProperty('uriPathSegment', $uriPathSegment);
+            $storageNodeTemplate->setName($nodeName);
+            $this->storageNode = $this->siteNode->createNodeFromTemplate($storageNodeTemplate);
+        }
+    }
+
+
+    /**
+     * Initializes the node template(s) used by this importer.
+     *
+     * Override this method if you need to work with other / multiple node types.
+     *
+     * @return void
+     * @api
+     */
+    protected function initializeNodeTemplates()
+    {
+        $this->nodeType = $this->nodeTypeManager->getNodeType($this->nodeTypeName);
+        $this->nodeTemplate = new NodeTemplate();
+        $this->nodeTemplate->setNodeType($this->nodeType);
     }
 }

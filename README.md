@@ -55,7 +55,48 @@ class BasicDataProvider extends DataProvider {
 A basic Importer
 ----------------
 
-TODO
+```php
+class ProductImporter extends AbstractImporter
+{
+
+    /**
+     * @var string
+     */
+    protected $externalIdentifierDataKey = 'productNumber';
+
+    /**
+     * @var string
+     */
+    protected $labelDataKey = 'properties.name';
+
+    /**
+     * @var string
+     */
+    protected $nodeNamePrefix = 'product-';
+
+    /**
+     * @var string
+     */
+    protected $nodeTypeName = 'Acme.Demo:Product';
+
+    /**
+     * Starts batch processing all commands
+     *
+     * @return void
+     * @api
+     */
+    public function process()
+    {
+        $this->initializeStorageNode('shop/products', 'products', 'Products', 'products');
+        $this->initializeNodeTemplates();
+
+        $nodeTemplate = new NodeTemplate();
+        $this->processBatch($nodeTemplate);
+    }
+
+}
+
+```
 
 A basic preset
 --------------

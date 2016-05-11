@@ -34,7 +34,7 @@ abstract class AbstractDataProvider implements DataProviderInterface
      * @var integer
      * @api
      */
-    protected $offset;
+    protected $offset = 0;
 
     /**
      * @var integer
