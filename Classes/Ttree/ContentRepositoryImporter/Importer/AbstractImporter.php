@@ -210,10 +210,14 @@ abstract class AbstractImporter implements ImporterInterface
      * Import data from the given data provider
      *
      * @param NodeTemplate $nodeTemplate
+     * @throws Exception
      */
     protected function processBatch(NodeTemplate $nodeTemplate = null)
     {
         $records = $this->dataProvider->fetch();
+        if (!is_array($records)) {
+            throw new Exception(sprintf('Expected records as an array while calling %s->fetch(), but returned %s instead.', get_class($this->dataProvider), gettype($records)), 1462960769826);
+        }
         $records = $this->preProcessing($records);
         array_walk($records, function ($data) use ($nodeTemplate) {
             $this->processRecord($nodeTemplate, $data);
