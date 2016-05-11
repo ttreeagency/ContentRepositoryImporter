@@ -9,7 +9,7 @@ use Ttree\ContentRepositoryImporter\DataProvider\DataProvider;
 use Ttree\ContentRepositoryImporter\Domain\Model\PresetPartDefinition;
 use Ttree\ContentRepositoryImporter\Domain\Repository\EventRepository;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
-use Ttree\ContentRepositoryImporter\Importer\Importer;
+use Ttree\ContentRepositoryImporter\Importer\AbstractImporter;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Cli\CommandController;
 use TYPO3\Flow\Core\Booting\Scripts;
@@ -223,7 +223,7 @@ class ImportCommandController extends CommandController
 
             $importerOptions = Arrays::getValueByPath($this->settings, ['presets', $presetName, $partName, 'importerOptions']);
 
-            /** @var Importer $importer */
+            /** @var AbstractImporter $importer */
             $importer = $this->objectManager->get($importerClassName, is_array($importerOptions) ? $importerOptions : [], $currentImportIdentifier);
             $importer->getImportService()->addEventMessage(sprintf('%s:Batch:Started', $importerClassName), sprintf('%s batch started (%s)', $importerClassName, $dataProviderClassName));
             $importer->initialize($dataProvider);

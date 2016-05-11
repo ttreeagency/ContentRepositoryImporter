@@ -22,7 +22,7 @@ use TYPO3\TYPO3CR\Domain\Service\NodeTypeManager;
 /**
  * Abstract Importer
  */
-abstract class Importer implements ImporterInterface
+abstract class AbstractImporter implements ImporterInterface
 {
     /**
      * @Flow\Inject
@@ -184,6 +184,7 @@ abstract class Importer implements ImporterInterface
 
     /**
      * Initialize import context
+     *
      * @param DataProviderInterface $dataProvider
      * @throws Exception
      */
@@ -233,6 +234,31 @@ abstract class Importer implements ImporterInterface
             }
             $nodeTemplate->removeProperty($propertyName);
         }
+    }
+
+    /**
+     * Applies the given properties ($data) to the given Node or NodeTemplate
+     *
+     * @param array $data Property names and property values
+     * @param NodeInterface|NodeTemplate $nodeOrTemplate The Node or Node Template
+     * @return boolean True if an existing node has been modified, false if the new properties are the same like the old ones
+     */
+    protected function applyProperties(array $data, $nodeOrTemplate)
+    {
+        if (!$nodeOrTemplate instanceof NodeInterface && !$nodeOrTemplate instanceof NodeTemplate) {
+            throw new \InvalidArgumentException(sprintf('$nodeOrTemplate must be either an object implementing NodeInterface or a NodeTemplate, %s given.', (is_object($nodeOrTemplate) ? get_class($nodeOrTemplate) : gettype($nodeOrTemplate))), 1462958554616);
+        }
+        $nodeChanged = false;
+        foreach ($data as $propertyName => $propertyValue) {
+            if (substr($propertyName, 0, 1) === '_') {
+                continue;
+            }
+            if ($nodeOrTemplate->getProperty($propertyName) != $propertyValue) {
+                $nodeOrTemplate->setProperty($propertyName, $propertyValue);
+                $nodeChanged = true;
+            }
+        }
+        return $nodeChanged;
     }
 
     /**
