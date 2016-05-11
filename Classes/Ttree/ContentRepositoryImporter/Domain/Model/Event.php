@@ -1,9 +1,9 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Domain\Model;
 
-/*                                                                                  *
- * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
- *                                                                                  */
+/*
+ * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
+ */
 
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Neos\EventLog\Domain\Model\NodeEvent;

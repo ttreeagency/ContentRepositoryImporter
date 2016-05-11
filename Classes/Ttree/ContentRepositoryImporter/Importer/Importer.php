@@ -1,9 +1,9 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Importer;
 
-/*                                                                                  *
- * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
- *                                                                                  */
+/*
+ * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
+ */
 
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;

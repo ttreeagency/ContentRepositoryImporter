@@ -1,9 +1,9 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\DataProvider;
 
-/*                                                                                  *
- * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
- *                                                                                  */
+/*
+ * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
+ */
 
 use Ttree\ContentRepositoryImporter\Exception\InvalidArgumentException;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
@@ -13,40 +13,13 @@ use TYPO3\Flow\Log\SystemLoggerInterface;
 /**
  * Csv Data Provider
  */
-class CsvDataProvider implements DataProviderInterface
+class CsvDataProvider extends AbstractDataProvider
 {
-    /**
-     * @Flow\Inject
-     * @var SystemLoggerInterface
-     */
-    protected $logger;
-
     /**
      * @Flow\Inject
      * @var ProcessedNodeService
      */
     protected $processedNodeService;
-
-    /**
-     * @var integer
-     */
-    protected $offset;
-
-    /**
-     * @var integer
-     */
-    protected $limit;
-
-    /**
-     * @Flow\InjectConfiguration(package="Ttree.ContentRepositoryImporter")
-     * @var array
-     */
-    protected $settings;
-
-    /**
-     * @var array
-     */
-    protected $options = [];
 
     /**
      * @var string
@@ -63,15 +36,9 @@ class CsvDataProvider implements DataProviderInterface
      */
     protected $csvEnclosure = '"';
 
-    /**
-     * @param array $options
-     */
-    public function __construct(array $options)
-    {
-        $this->options = $options;
-    }
-
-    /**
+     /**
+     * Initialize this data provider with the currently set options
+     *
      * @throws InvalidArgumentException
      */
     public function initializeObject()
@@ -97,7 +64,11 @@ class CsvDataProvider implements DataProviderInterface
     }
 
     /**
-     * @return array
+     * Fetch all the data from this Data Source.
+     *
+     * If offset and / or limit are set, only those records will be returned.
+     *
+     * @return array The records
      * @throws \Exception
      * @throws InvalidArgumentException
      */
@@ -129,51 +100,12 @@ class CsvDataProvider implements DataProviderInterface
     }
 
     /**
-     * @param array $options
-     * @param integer $offset
-     * @param integer $limit
-     * @return DataProviderInterface
-     */
-    public static function create(array $options = [], $offset = null, $limit = null)
-    {
-        $class = get_called_class();
-        /** @var DataProviderInterface $dataProvider */
-        $dataProvider = new $class($options);
-        $dataProvider->setOffset($offset);
-        $dataProvider->setLimit($limit);
-
-        return $dataProvider;
-    }
-
-    /**
-     * @param integer $offset
-     */
-    public function setOffset($offset)
-    {
-        $this->offset = (integer)$offset;
-    }
-
-    /**
-     * @param integer $limit
-     */
-    public function setLimit($limit)
-    {
-        $this->limit = (integer)$limit;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function hasLimit()
-    {
-        return $this->limit > 0;
-    }
-
-    /**
      * Can be use to process data in children class
+     *
      * @param array $data
      */
     protected function preProcessRecordData(&$data)
     {
     }
+
 }
