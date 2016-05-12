@@ -16,11 +16,12 @@ What's included ?
 A basic DataProvider
 --------------------
 
-Every dataprovider must extends the ``DataProvider`` abstract class or implements the 
-interface ```DataProviderInterface```. Check the source code of the abstract data provider, there's some useful things.
+Every data provider must extend the ``DataProvider`` abstract class or implement the
+interface ```DataProviderInterface```. Check the source code of the abstract data provider, there are some useful things
+to discover.
 
 It's important to update the ```count``` property when you process data from the external source. During the processing,
-you can decide to skip some data (invalid data, missing value, ...) so we can not use the SQL count feature.
+you can decide to skip some data (invalid data, missing values, ...) so we can not use the SQL count feature.
 
 ```php
 class BasicDataProvider extends DataProvider {
@@ -59,9 +60,9 @@ TODO
 A basic preset
 --------------
 
-You can configure an import preset in your ```Settings.yaml```. A preset is splitted in multiple parts. If you use the
+You can configure an import preset in your ```Settings.yaml```. A preset is split in multiple parts. If you use the
 ```batchSize```, the current part will be executed by batch, by using a sub CLI request. This can solve memory or
-performance issue for big import.
+performance issue for big imports.
 
 ```yaml
 Ttree:
@@ -119,6 +120,41 @@ You can also filter the preset steps:
 ```
 flow import:batch --preset base --parts page,pageContent
 ```
+
+CSV Data Provider
+-----------------
+
+This package comes with a basic data provider for CSV files which will suffice for many scenarios. The class name for
+this data provider is `Ttree\ContentRepositoryImporter\DataProvider\CsvDataProvider`.
+
+The following options can be passed to the data provider:
+
+- `csvFilePath`: the full path and filename leading to the file to import
+- `csvDelimiter`: the delimiter used in the CSV file (default: `,`)
+- `csvEnclosure`: the character which is used for enclosing the values (default: `"`)
+- `skipHeader`: if the first line in the CSV file should be ignored (default: false)
+
+Here is an example for a preset using the CSV Data Provider:
+
+```yaml
+Ttree:
+  ContentRepositoryImporter:
+    presets:
+      'products':
+        'products':
+          label: 'Product Import'
+          batchSize: 100
+          dataProviderClassName: 'Ttree\ContentRepositoryImporter\DataProvider\CsvDataProvider'
+          dataProviderOptions:
+            csvFilePath: '/tmp/Products.csv'
+            csvDelimiter: ';'
+            csvEnclosure: '"'
+            skipHeader: true
+          importerClassName: 'Acme\MyProductImporter\Service\Import\ProductImporter'
+          importerOptions:
+            siteNodePath: '/sites/wwwacmecom'
+```
+
 
 Acknowledgments
 ---------------
