@@ -27,6 +27,29 @@ use TYPO3\TYPO3CR\Domain\Service\NodeTypeManager;
  */
 abstract class AbstractImporter implements ImporterInterface
 {
+
+    /**
+     * Node path (can be absolute or relative to the current site node) where the "storage node" (ie. the parent
+     * document node for nodes imported by the concrete importer) will be located.
+     *
+     * @var string
+     */
+    protected $storageNodeNodePath = 'exampleStorage';
+
+    /**
+     * A label / title for the storage document node
+     *
+     * @var string
+     */
+    protected $storageNodeTitle = 'Storage';
+
+    /**
+     * Name of the node type to use for creating a new storage node, if needed
+     *
+     * @var string
+     */
+    protected $storageNodeTypeName = 'TYPO3.Neos.NodeTypes:Page';
+
     /**
      * Key name for getExternalIdentifierFromRecordData() to determine the external identifier of a record
      * from $commandData. Set this to the actual key (or nested key path, like 'foo.bar.baz') in the concrete
@@ -264,14 +287,14 @@ abstract class AbstractImporter implements ImporterInterface
     /**
      * Starts batch processing all commands
      *
-     * This is just an example. You need to override this method in your concrete importer.
+     * Override this method if you would like some other way of initialization.
      *
      * @return void
      * @api
      */
     public function process()
     {
-        $this->initializeStorageNode('example/sub/path/storage', 'storage', 'Example Storage', 'example-storage');
+        $this->initializeStorageNode($this->storageNodeNodePath, $this->storageNodeTitle);
         $this->initializeNodeTemplates();
 
         $nodeTemplate = new NodeTemplate();
@@ -528,16 +551,18 @@ abstract class AbstractImporter implements ImporterInterface
      * The storage node is either created or just retrieved and finally stored in $this->storageNode.
      *
      * @param string $nodePath Absolute or relative (to the site node) node path of the storage node
-     * @param string $nodeName Just the node name of the storage node
      * @param string $title Title for the storage node document
-     * @param string $uriPathSegment Uri path segment for the storage node
      * @return void
      * @throws \TYPO3\TYPO3CR\Exception\NodeTypeNotFoundException
      */
-    protected function initializeStorageNode($nodePath, $nodeName, $title, $uriPathSegment)
+    protected function initializeStorageNode($nodePath, $title)
     {
+        preg_match('|([a-z0-9\-]+/)*([a-z0-9\-]+)$|', $nodePath, $matches);
+        $nodeName = $matches[2];
+        $uriPathSegment = Slug::create($title)->getValue();
+
         $storageNodeTemplate = new NodeTemplate();
-        $storageNodeTemplate->setNodeType($this->nodeTypeManager->getNodeType('TYPO3.Neos.NodeTypes:Page'));
+        $storageNodeTemplate->setNodeType($this->nodeTypeManager->getNodeType($this->storageNodeTypeName));
 
         $this->storageNode = $this->siteNode->getNode($nodePath);
         if ($this->storageNode === null) {

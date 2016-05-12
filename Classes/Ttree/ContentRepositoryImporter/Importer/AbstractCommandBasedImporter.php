@@ -36,6 +36,9 @@ abstract class AbstractCommandBasedImporter extends AbstractImporter
             $data['uriPathSegment'] = Slug::create($this->getLabelFromRecordData($data))->getValue();
         }
 
+        $this->nodeTemplate->setNodeType($this->nodeType);
+        $this->nodeTemplate->setName($this->renderNodeName($externalIdentifier));
+
         if (!isset($data['mode'])) {
             throw new \Exception(sprintf('Could not determine command mode from data record with external identifier %s. Please make sure that "mode" exists in that record.', $externalIdentifier), 1462985246103);
         }
