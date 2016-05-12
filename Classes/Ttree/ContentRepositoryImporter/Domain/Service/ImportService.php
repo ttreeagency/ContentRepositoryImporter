@@ -158,7 +158,7 @@ class ImportService
     /**
      * Persist all pending entities
      */
-    public function persisteEntities()
+    public function persistEntities()
     {
         $this->importRepository->persistEntities();
     }
