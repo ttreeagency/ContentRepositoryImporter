@@ -1,9 +1,9 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Importer;
 
-/*                                                                                  *
- * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
- *                                                                                  */
+/*
+ * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
+ */
 
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;
@@ -22,7 +22,7 @@ use TYPO3\TYPO3CR\Domain\Service\NodeTypeManager;
 /**
  * Abstract Importer
  */
-abstract class Importer implements ImporterInterface
+abstract class AbstractImporter implements ImporterInterface
 {
     /**
      * @Flow\Inject
@@ -184,6 +184,7 @@ abstract class Importer implements ImporterInterface
 
     /**
      * Initialize import context
+     *
      * @param DataProviderInterface $dataProvider
      * @throws Exception
      */
@@ -209,10 +210,14 @@ abstract class Importer implements ImporterInterface
      * Import data from the given data provider
      *
      * @param NodeTemplate $nodeTemplate
+     * @throws Exception
      */
     protected function processBatch(NodeTemplate $nodeTemplate = null)
     {
         $records = $this->dataProvider->fetch();
+        if (!is_array($records)) {
+            throw new Exception(sprintf('Expected records as an array while calling %s->fetch(), but returned %s instead.', get_class($this->dataProvider), gettype($records)), 1462960769826);
+        }
         $records = $this->preProcessing($records);
         array_walk($records, function ($data) use ($nodeTemplate) {
             $this->processRecord($nodeTemplate, $data);
@@ -236,6 +241,31 @@ abstract class Importer implements ImporterInterface
     }
 
     /**
+     * Applies the given properties ($data) to the given Node or NodeTemplate
+     *
+     * @param array $data Property names and property values
+     * @param NodeInterface|NodeTemplate $nodeOrTemplate The Node or Node Template
+     * @return boolean True if an existing node has been modified, false if the new properties are the same like the old ones
+     */
+    protected function applyProperties(array $data, $nodeOrTemplate)
+    {
+        if (!$nodeOrTemplate instanceof NodeInterface && !$nodeOrTemplate instanceof NodeTemplate) {
+            throw new \InvalidArgumentException(sprintf('$nodeOrTemplate must be either an object implementing NodeInterface or a NodeTemplate, %s given.', (is_object($nodeOrTemplate) ? get_class($nodeOrTemplate) : gettype($nodeOrTemplate))), 1462958554616);
+        }
+        $nodeChanged = false;
+        foreach ($data as $propertyName => $propertyValue) {
+            if (substr($propertyName, 0, 1) === '_') {
+                continue;
+            }
+            if ($nodeOrTemplate->getProperty($propertyName) != $propertyValue) {
+                $nodeOrTemplate->setProperty($propertyName, $propertyValue);
+                $nodeChanged = true;
+            }
+        }
+        return $nodeChanged;
+    }
+
+    /**
      * Preprocess RAW data
      *
      * @param array $records
@@ -256,6 +286,15 @@ abstract class Importer implements ImporterInterface
     }
 
     /**
+     * Checks if processing / import of the record specified by $externalIdentifier should be skipped.
+     *
+     * The following criteria for skipping the processing exist:
+     *
+     * 1) a record with the given external identifier already has been processed in the past
+     * 2) a node with a node name equal to what a new node would have already exists
+     *
+     * These criteria can be enabled or disabled through $skipExistingNode and $skipAlreadyProcessed.
+     *
      * @param string $externalIdentifier
      * @param string $nodeName
      * @param NodeInterface $storageNode

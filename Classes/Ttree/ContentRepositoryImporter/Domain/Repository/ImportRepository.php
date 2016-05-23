@@ -1,9 +1,9 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Domain\Repository;
 
-/*                                                                                  *
- * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
- *                                                                                  */
+/*
+ * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
+ */
 
 use Doctrine\Common\Persistence\ObjectManager;
 use TYPO3\Flow\Annotations as Flow;
