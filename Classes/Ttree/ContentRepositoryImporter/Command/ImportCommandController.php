@@ -17,7 +17,6 @@ use TYPO3\Flow\Core\Booting\Scripts;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 use TYPO3\Flow\Object\ObjectManagerInterface;
-use TYPO3\Flow\Persistence\PersistenceManagerInterface;
 use TYPO3\Flow\Utility\Arrays;
 use TYPO3\Neos\EventLog\Domain\Service\EventEmittingService;
 
@@ -41,10 +40,10 @@ class ImportCommandController extends CommandController
     protected $eventLogRepository;
 
     /**
-     * @Flow\Inject
-     * @var ConfigurationManager
+     * @Flow\InjectConfiguration(package="TYPO3.Flow")
+     * @var array
      */
-    protected $configurationManager;
+    protected $flowSettings;
 
     /**
      * @Flow\Inject
@@ -102,23 +101,34 @@ class ImportCommandController extends CommandController
     }
 
     /**
-     * Batch process of the given preset
+     * Run batch import
      *
-     * @param string $preset
-     * @param string $parts
+     * This executes a batch import as configured in the settings for the specified preset. Optionally the "parts" can
+     * be specified, separated by comma ",".
+     *
+     * Presets and parts need to be configured via settings first. Refer to the documentation for possible options and
+     * example configurations.
+     *
+     * @param string $preset Name of the preset which holds the configuration for the import
+     * @param string $parts Optional comma separated names of parts. If no parts are specified, all parts will be imported.
+     * @param integer $batchSize Number of records to import at a time. If not specified, the batch size defined in the preset will be used.
+     * @return void
      */
-    public function batchCommand($preset, $parts = null)
+    public function batchCommand($preset, $parts = null, $batchSize = null)
     {
         $this->importService->start();
+
         $this->startTime = microtime(true);
         $parts = Arrays::trimExplode(',', $parts);
+
         $this->outputLine('Start import ...');
         $presetSettings = Arrays::getValueByPath($this->settings, array('presets', $preset));
         if (!is_array($presetSettings)) {
             $this->outputLine(sprintf('Preset "%s" not found ...', $preset));
             $this->quit(1);
         }
-        array_walk($presetSettings, function ($partSetting, $partName) use ($preset, $parts) {
+
+        array_walk($presetSettings, function ($partSetting, $partName) use ($preset, $parts, $batchSize) {
             $this->elapsedTime = 0;
             $this->batchCounter = 0;
             $this->outputLine();
@@ -126,6 +136,9 @@ class ImportCommandController extends CommandController
 
             $partSetting['__currentPresetName'] = $preset;
             $partSetting['__currentPartName'] = $partName;
+            if ($batchSize !== null) {
+                $partSetting['batchSize'] = $batchSize;
+            }
 
             $partSetting = new PresetPartDefinition($partSetting, $this->importService->getCurrentImportIdentifier());
             if ($parts !== array() && !in_array($partName, $parts)) {
@@ -144,6 +157,7 @@ class ImportCommandController extends CommandController
 
         $this->importService->stop();
         $import = $this->importService->getLastImport();
+
         $this->outputLine();
         $this->outputLine('Import finished.');
         $this->outputLine(sprintf('  Started   %s', $import->getStart()->format(DATE_RFC2822)));
@@ -154,8 +168,10 @@ class ImportCommandController extends CommandController
     }
 
     /**
+     * Execute a sub process which imports a batch as specified by the part definition.
+     *
      * @param PresetPartDefinition $partSetting
-     * @return integer
+     * @return integer The number of records which have been imported
      */
     protected function executeCommand(PresetPartDefinition $partSetting)
     {
@@ -167,7 +183,7 @@ class ImportCommandController extends CommandController
 
             ++$this->batchCounter;
             ob_start();
-            $status = Scripts::executeCommand('ttree.contentrepositoryimporter:import:executebatch', $this->getFlowSettings(), true, $partSetting->getCommandArguments());
+            $status = Scripts::executeCommand('ttree.contentrepositoryimporter:import:executebatch', $this->flowSettings, true, $partSetting->getCommandArguments());
             if ($status !== true) {
                 throw new Exception('Sub command failed', 1426767159);
             }
@@ -191,6 +207,11 @@ class ImportCommandController extends CommandController
     }
 
     /**
+     * Import a single batch
+     *
+     * This internal command is called by executeCommand() and runs an isolated import for a batch as specified by
+     * the command's arguments.
+     *
      * @param string $presetName
      * @param string $partName
      * @param string $dataProviderClassName
@@ -198,7 +219,7 @@ class ImportCommandController extends CommandController
      * @param string $currentImportIdentifier
      * @param integer $offset
      * @param integer $batchSize
-     * @return integer
+     * @return void
      * @Flow\Internal
      */
     public function executeBatchCommand($presetName, $partName, $dataProviderClassName, $importerClassName, $currentImportIdentifier, $offset = null, $batchSize = null)
@@ -222,13 +243,5 @@ class ImportCommandController extends CommandController
             $this->logger->logException($exception);
             $this->quit(1);
         }
-    }
-
-    /**
-     * @return array
-     */
-    protected function getFlowSettings()
-    {
-        return $this->configurationManager->getConfiguration(ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'TYPO3.Flow');
     }
 }
