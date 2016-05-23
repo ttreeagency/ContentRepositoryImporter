@@ -12,7 +12,6 @@ use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Importer\Importer;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Cli\CommandController;
-use TYPO3\Flow\Configuration\ConfigurationManager;
 use TYPO3\Flow\Core\Booting\Scripts;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Log\SystemLoggerInterface;
@@ -90,14 +89,6 @@ class ImportCommandController extends CommandController
     public function injectSettings(array $settings)
     {
         $this->settings = $settings;
-    }
-
-    /**
-     * Remove all import event from the event log
-     */
-    public function flushEventLogCommand()
-    {
-        $this->eventLogRepository->removeAll();
     }
 
     /**
@@ -244,4 +235,17 @@ class ImportCommandController extends CommandController
             $this->quit(1);
         }
     }
+
+    /**
+     * Clean up event log
+     *
+     * This command removes all Neos event log entries caused by the importer.
+     *
+     * @return void
+     */
+    public function flushEventLogCommand()
+    {
+        $this->eventLogRepository->removeAll();
+    }
+
 }

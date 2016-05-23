@@ -124,6 +124,7 @@ class CsvDataProvider implements DataProviderInterface
             fclose($handle);
         }
 
+        $this->logger->log(sprintf('%s: read %s lines and found %s records.', $this->csvFilePath, $currentLine, count($dataResult)), LOG_DEBUG);
         return $dataResult;
     }
 
