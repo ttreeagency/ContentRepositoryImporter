@@ -6,6 +6,7 @@ namespace Ttree\ContentRepositoryImporter\Command;
  */
 
 use Ttree\ContentRepositoryImporter\DataProvider\DataProvider;
+use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\Domain\Model\PresetPartDefinition;
 use Ttree\ContentRepositoryImporter\Domain\Repository\EventRepository;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
@@ -119,7 +120,9 @@ class ImportCommandController extends CommandController
             $this->quit(1);
         }
 
-        array_walk($presetSettings, function ($partSetting, $partName) use ($preset, $parts, $batchSize) {
+        $this->checkForPartsSettingsOrQuit($presetSettings, $preset);
+
+        array_walk($presetSettings['parts'], function ($partSetting, $partName) use ($preset, $parts, $batchSize) {
             $this->elapsedTime = 0;
             $this->batchCounter = 0;
             $this->outputLine();
@@ -216,12 +219,12 @@ class ImportCommandController extends CommandController
     public function executeBatchCommand($presetName, $partName, $dataProviderClassName, $importerClassName, $currentImportIdentifier, $offset = null, $batchSize = null)
     {
         try {
-            $dataProviderOptions = Arrays::getValueByPath($this->settings, implode('.', ['presets', $presetName, $partName, 'dataProviderOptions']));
+            $dataProviderOptions = Arrays::getValueByPath($this->settings, implode('.', ['presets', $presetName, 'parts', $partName, 'dataProviderOptions']));
 
-            /** @var DataProvider $dataProvider */
+            /** @var DataProviderInterface $dataProvider */
             $dataProvider = $dataProviderClassName::create(is_array($dataProviderOptions) ? $dataProviderOptions : [], $offset, $batchSize);
 
-            $importerOptions = Arrays::getValueByPath($this->settings, ['presets', $presetName, $partName, 'importerOptions']);
+            $importerOptions = Arrays::getValueByPath($this->settings, ['presets', $presetName, 'parts', $partName, 'importerOptions']);
 
             /** @var AbstractImporter $importer */
             $importer = $this->objectManager->get($importerClassName, is_array($importerOptions) ? $importerOptions : [], $currentImportIdentifier);
@@ -247,5 +250,36 @@ class ImportCommandController extends CommandController
     {
         $this->eventLogRepository->removeAll();
     }
+
+    /**
+     * Checks if the preset settings contain a "parts" segment and quits if it does not.
+     *
+     * @param array $presetSettings
+     * @param string $preset
+     * @throws \TYPO3\Flow\Mvc\Exception\StopActionException
+     */
+    protected function checkForPartsSettingsOrQuit(array $presetSettings, $preset)
+    {
+        if (!isset($presetSettings['parts'])) {
+            $this->outputLine('<b>No "parts" array found for import preset "%s</b>".', [ $preset ]);
+            $this->outputLine();
+            $this->outputLine('Please note that the settings structure has changed slightly. Instead of just defining');
+            $this->outputLine('parts as a sub-array of the respective preset, you now need to define them in a sub-array');
+            $this->outputLine('called "parts".');
+            $this->outputLine('');
+            $this->outputLine('Ttree:');
+            $this->outputLine('  ContentRepositoryImporter:');
+            $this->outputLine('    presets:');
+            $this->outputLine("      '$preset':");
+            $this->outputLine("        parts:");
+            if (is_array($presetSettings) && count($presetSettings) > 0) {
+                $firstPart = array_keys($presetSettings)[0];
+                $this->outputLine("          '$firstPart':");
+            }
+            $this->outputLine("          ...");
+            $this->quit(1);
+        }
+    }
+
 
 }

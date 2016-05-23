@@ -7,11 +7,11 @@ What's included ?
 -----------------
 
 * A command controller (CLI) to launch your import presets
-* Based on simple convention
+* Based on simple conventions
 * DataProvider: used to prepare and cleanup data from the external source
 * Importer: get the data from the DataProvider and push everything in the CR
 * DataType: Simple object used to cleanup value and share code between DataProvider
-* No magic, the big part of the work is on your side
+* No big magic, you can always take control by overriding the default configuration and methods
 
 A basic DataProvider
 --------------------
@@ -83,27 +83,28 @@ Ttree:
 
     presets:
       'base':
-        'news':
-          label: 'News Import'
-          dataProviderClassName: 'Your\Package\Importer\DataProvider\NewsDataProvider'
-          importerClassName: 'Your\Package\Importer\Importer\NewsImporter'
-        'page':
-          label: 'Page Import'
-          dataProviderClassName: 'Your\Package\Importer\DataProvider\PageDataProvider'
-          dataProviderOptions:
-            source: 'extraSourceDatabase'
-            someOption: 'Some option that will be available in the options property of the data provider'
-          importerClassName: 'Your\Package\Importer\Importer\PageImporter'
-          importerOptions:
-            siteNodePath: '/sites/my-site'
-            someOption: 'Some option that will be available in the options property of the importer'
-          batchSize': 120
+        parts:
+          'news':
+            label: 'News Import'
+            dataProviderClassName: 'Your\Package\Importer\DataProvider\NewsDataProvider'
+            importerClassName: 'Your\Package\Importer\Importer\NewsImporter'
+          'page':
+            label: 'Page Import'
+            dataProviderClassName: 'Your\Package\Importer\DataProvider\PageDataProvider'
+            dataProviderOptions:
+              source: 'extraSourceDatabase'
+              someOption: 'Some option that will be available in the options property of the data provider'
+            importerClassName: 'Your\Package\Importer\Importer\PageImporter'
+            importerOptions:
+              siteNodePath: '/sites/my-site'
+              someOption: 'Some option that will be available in the options property of the importer'
+            batchSize': 120
 
-        'pageContent':
-          label: 'Page Content Import'
-          dataProviderClassName: 'Your\Package\Importer\DataProvider\PageContentDataProvider'
-          importerClassName: 'Your\Package\Importer\Importer\PageContentImporter'
-          batchSize: 120
+          'pageContent':
+            label: 'Page Content Import'
+            dataProviderClassName: 'Your\Package\Importer\DataProvider\PageContentDataProvider'
+            importerClassName: 'Your\Package\Importer\Importer\PageContentImporter'
+            batchSize: 120
 ```
 
 Start your import process
@@ -121,7 +122,7 @@ You can also filter the preset steps:
 flow import:batch --preset base --parts page,pageContent
 ```
 
-For testing purposes, or if you would like to override the value definied in your preset, you can also specify the number
+For testing purposes, or if you would like to override the value defined in your preset, you can also specify the number
 of records which should be imported at a time in an isolated sub-process:
 
 ```
@@ -148,18 +149,19 @@ Ttree:
   ContentRepositoryImporter:
     presets:
       'products':
-        'products':
-          label: 'Product Import'
-          batchSize: 100
-          dataProviderClassName: 'Ttree\ContentRepositoryImporter\DataProvider\CsvDataProvider'
-          dataProviderOptions:
-            csvFilePath: '/tmp/Products.csv'
-            csvDelimiter: ';'
-            csvEnclosure: '"'
-            skipHeader: true
-          importerClassName: 'Acme\MyProductImporter\Service\Import\ProductImporter'
-          importerOptions:
-            siteNodePath: '/sites/wwwacmecom'
+        parts:
+          'products':
+            label: 'Product Import'
+            batchSize: 100
+            dataProviderClassName: 'Ttree\ContentRepositoryImporter\DataProvider\CsvDataProvider'
+            dataProviderOptions:
+              csvFilePath: '/tmp/Products.csv'
+              csvDelimiter: ';'
+              csvEnclosure: '"'
+              skipHeader: true
+            importerClassName: 'Acme\MyProductImporter\Service\Import\ProductImporter'
+            importerOptions:
+              siteNodePath: '/sites/wwwacmecom'
 ```
 
 
