@@ -29,6 +29,12 @@ class Import
     protected $end;
 
     /**
+     * @var string
+     * @ORM\Column(length=255, nullable=true)
+     */
+    protected $externalImportIdentifier;
+
+    /**
      * @Flow\Inject
      * @var EventEmittingService
      */
@@ -51,6 +57,23 @@ class Import
         }
     }
 
+    /**
+     * Sets an (external) identifier which allows for detecting already imported data sets.
+     *
+     * @param string $externalImportIdentifier
+     */
+    public function setExternalImportIdentifier($externalImportIdentifier)
+    {
+        $this->externalImportIdentifier = $externalImportIdentifier;
+    }
+
+    /**
+     * @return string
+     */
+    public function getExternalImportIdentifier()
+    {
+        return $this->externalImportIdentifier;
+    }
     /**
      * @param string $eventType
      * @param string $externalIdentifier

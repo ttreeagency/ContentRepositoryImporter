@@ -5,11 +5,11 @@ namespace Ttree\ContentRepositoryImporter\Command;
  * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
  */
 
-use Ttree\ContentRepositoryImporter\DataProvider\DataProvider;
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\Domain\Model\PresetPartDefinition;
 use Ttree\ContentRepositoryImporter\Domain\Repository\EventRepository;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
+use Ttree\ContentRepositoryImporter\Exception\ImportAlreadyExecutedException;
 use Ttree\ContentRepositoryImporter\Importer\AbstractImporter;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Cli\CommandController;
@@ -101,14 +101,31 @@ class ImportCommandController extends CommandController
      * Presets and parts need to be configured via settings first. Refer to the documentation for possible options and
      * example configurations.
      *
+     * You may optionally specify an external import identifier which will be stored as meta data with the import run.
+     * This identifier is used for checking if an import of the given data set (in general) has been executed earlier.
+     * The external import identifier therefore does globally what the external record identifier does on a per record
+     * basis.
+     *
+     * If an external import identifier was specified and an import using that identifier has been executed earlier,
+     * this command will stop with a corresponding message. You can force running such an import by specifying the
+     * --force flag.
+     *
      * @param string $preset Name of the preset which holds the configuration for the import
      * @param string $parts Optional comma separated names of parts. If no parts are specified, all parts will be imported.
      * @param integer $batchSize Number of records to import at a time. If not specified, the batch size defined in the preset will be used.
+     * @param string $externalImportIdentifier External identifier which is used for checking if an import of the same data has already been executed earlier.
+     * @param boolean $force If set, an import will even be executed if it ran earlier with the same external import identifier.
      * @return void
      */
-    public function batchCommand($preset, $parts = null, $batchSize = null)
+    public function batchCommand($preset, $parts = null, $batchSize = null, $externalImportIdentifier = null, $force = false)
     {
-        $this->importService->start();
+        try {
+            $this->importService->start($externalImportIdentifier, $force);
+        } catch (ImportAlreadyExecutedException $e) {
+            $this->outputLine($e->getMessage());
+            $this->outputLine('Import skipped. You can force running this import again by specifying --force.');
+            $this->quit(1);
+        }
 
         $this->startTime = microtime(true);
         $parts = Arrays::trimExplode(',', $parts);
@@ -280,6 +297,5 @@ class ImportCommandController extends CommandController
             $this->quit(1);
         }
     }
-
 
 }
