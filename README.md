@@ -23,7 +23,11 @@ to discover.
 It's important to update the ```count``` property when you process data from the external source. During the processing,
 you can decide to skip some data (invalid data, missing values, ...) so we can not use the SQL count feature.
 
+Try to do most of the data cleaning up in the data provider, so the data would arrive to the importer ready for insertion.
+
 ```php
+use Ttree\ContentRepositoryImporter\DataProvider;
+
 class BasicDataProvider extends DataProvider {
 
 	/**
@@ -55,7 +59,68 @@ class BasicDataProvider extends DataProvider {
 A basic Importer
 ----------------
 
-TODO
+Every data importer must extend the ``Importer`` abstract class or implement the
+interface ```ImporterInterface```.
+
+In the `processRecord` method you handle the processing of every record, such as
+creating Content Repository node for each incoming data record.
+Do not forget to register the processed nodes with `registerNodeProcessing`.
+
+```php
+use TYPO3\TYPO3CR\Domain\Model\NodeInterface;
+use TYPO3\TYPO3CR\Domain\Model\NodeTemplate;
+use Ttree\ContentRepositoryImporter\Importer\Importer;
+use Ttree\ContentRepositoryImporter\DataType\Slug;
+
+class DemoImporter extends Importer
+{
+	/**
+	* @return void
+	*/
+	public function process()
+	{
+		$this->storageNode = $this->siteNode->getNode('demo');
+		if ($this->storageNode === null) {
+			$storageNodeTemplate = new NodeTemplate();
+			$storageNodeTemplate->setNodeType($this->nodeTypeManager->getNodeType('Demo:StorageNode'));
+			$storageNodeTemplate->setProperty('title', 'Demo Storage node');
+			$storageNodeTemplate->setProperty('uriPathSegment', 'demo');
+			$storageNodeTemplate->setName('demo');
+			$this->storageNode = $this->siteNode->createNodeFromTemplate($storageNodeTemplate);
+		}
+
+		$nodeTemplate = new NodeTemplate();
+		$nodeTemplate->setNodeType($this->nodeTypeManager->getNodeType('Demo:RecordNode'));
+		$this->processBatch($nodeTemplate);
+	}
+	
+	/**
+	* @param NodeTemplate $nodeTemplate
+	* @param array $data
+	* @return NodeInterface
+	*/
+	public function processRecord(NodeTemplate $nodeTemplate, array $data)
+	{
+		$this->unsetAllNodeTemplateProperties($nodeTemplate);
+
+		$externalIdentifier = $data['__externalIdentifier'];
+		$name = $data['name'];
+		$nodeName = Slug::create($name)->getValue();
+		if ($this->skipNodeProcessing($externalIdentifier, $nodeName, $this->storageNode)) {
+			return $this->storageNode->getNode($nodeName);
+		}
+		$nodeTemplate->setName($nodeName);
+		$nodeTemplate->setProperty('name', $name);
+		
+		$node = $this->storageNode->createNodeFromTemplate($nodeTemplate);
+		
+		$this->registerNodeProcessing($node, $externalIdentifier);
+		
+		return $node;
+	}
+}
+
+```
 
 A basic preset
 --------------
@@ -106,6 +171,9 @@ Ttree:
             importerClassName: 'Your\Package\Importer\Importer\PageContentImporter'
             batchSize: 120
 ```
+
+Do not forget to require this package from the package in which you do the importing,
+to ensure the correct loading order, so the setting would get overriden correctly.
 
 Start your import process
 -------------------------
