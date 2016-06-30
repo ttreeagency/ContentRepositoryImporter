@@ -89,7 +89,7 @@ class ExternalResource extends DataType
         }
         Files::createDirectoryRecursively($this->options['downloadDirectory']);
 
-        $temporaryFilename = isset($value['temporaryPrefix']) ? trim(sprintf('%s-%s', $value['temporaryPrefix'], $overrideFilename)) : trim(sprintf('%s%s', $overrideFilename));
+        $temporaryFilename = isset($value['temporaryPrefix']) ? trim(sprintf('%s-%s', $value['temporaryPrefix'], $overrideFilename)) : trim($overrideFilename);
         $temporaryFileAndPathname = sprintf('%s%s', $this->options['downloadDirectory'], $temporaryFilename);
 
         $username = isset($value['username']) ? $value['username'] : null;
