@@ -55,7 +55,48 @@ class BasicDataProvider extends DataProvider {
 A basic Importer
 ----------------
 
-TODO
+```php
+class ProductImporter extends AbstractImporter
+{
+
+    /**
+     * @var string
+     */
+    protected $externalIdentifierDataKey = 'productNumber';
+
+    /**
+     * @var string
+     */
+    protected $labelDataKey = 'properties.name';
+
+    /**
+     * @var string
+     */
+    protected $nodeNamePrefix = 'product-';
+
+    /**
+     * @var string
+     */
+    protected $nodeTypeName = 'Acme.Demo:Product';
+
+    /**
+     * Starts batch processing all commands
+     *
+     * @return void
+     * @api
+     */
+    public function process()
+    {
+        $this->initializeStorageNode('shop/products', 'products', 'Products', 'products');
+        $this->initializeNodeTemplates();
+
+        $nodeTemplate = new NodeTemplate();
+        $this->processBatch($nodeTemplate);
+    }
+
+}
+
+```
 
 A basic preset
 --------------
@@ -128,6 +169,121 @@ of records which should be imported at a time in an isolated sub-process:
 ```
 flow import:batch --preset base --batch-size 50
 ```
+
+Command based importers
+-----------------------
+
+Some data sources may consist of commands rather than data records. For example, a JSON file may contain `create`,
+`update` and `delete` instructions which reduce the guess-work on the importer's side, which records may be new,
+which should be updated and if the absence of a record means that the corresponding node should be deleted from
+the content repository.
+
+For these cases you can extend the `AbstractCommandBasedImporter`. If your data records contain a `mode` field, the
+importer will try to call a corresponding command method within the same class.
+
+Consider the following data source file as an example:
+
+```json
+[
+    {
+        "mode": "create",
+        "mpn": "1081251137",
+        "languageIdentifier": "de",
+        "properties": {
+            "label": "Coffee Machine",
+            "price": "220000",
+            "externalKey": "1081251137"
+        }
+    },
+    {
+        "mode": "delete",
+        "mpn": "591500202"
+    }
+]
+```
+
+A corresponding `ProductImporter` might look like this:
+
+```php
+/**
+ * Class ProductImporter
+ */
+class ProductImporter extends AbstractCommandBasedImporter
+{
+
+    /**
+     * @var string
+     */
+    protected $storageNodeNodePath = 'products';
+
+    /**
+     * @var string
+     */
+    protected $storageNodeTitle = 'Products';
+
+    /**
+     * @var string
+     */
+    protected $externalIdentifierDataKey = 'mpn';
+
+    /**
+     * @var string
+     */
+    protected $labelDataKey = 'properties.Label';
+
+    /**
+     * @var string
+     */
+    protected $nodeNamePrefix = 'product-';
+
+    /**
+     * @var string
+    */
+    protected $nodeTypeName = 'Acme.MyShop:Product';
+
+    /**
+     * Creates a new product
+     *
+     * @param string $externalIdentifier
+     * @param array $data
+     * @return void
+     */
+    protected function createCommand($externalIdentifier, array $data)
+    {
+        $this->applyProperties($data['properties'], $this->nodeTemplate);
+
+        $node = $this->storageNode->createNodeFromTemplate($this->nodeTemplate);
+        $this->registerNodeProcessing($node, $externalIdentifier);
+    }
+
+    /**
+     * Updates a product
+     *
+     * @param string $externalIdentifier
+     * @param array $data
+     * @return void
+     */
+    protected function updateCommand($externalIdentifier, array $data)
+    {
+        $this->applyProperties($data['properties'], $this->nodeTemplate);
+
+        $node = $this->storageNode->createNodeFromTemplate($this->nodeTemplate);
+        $this->registerNodeProcessing($node, $externalIdentifier);
+    }
+
+    /**
+     * Deletes a product
+     *
+     * @param string $externalIdentifier
+     * @param array $data
+     */
+    protected function deleteCommand($externalIdentifier, array $data)
+    {
+        // delete the product node
+    }
+}
+```
+
 
 CSV Data Provider
 -----------------
