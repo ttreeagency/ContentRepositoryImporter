@@ -11,6 +11,7 @@ use Ttree\ContentRepositoryImporter\Domain\Model\Import;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Ttree\ContentRepositoryImporter\Domain\Repository\ImportRepository;
 use Ttree\ContentRepositoryImporter\Domain\Repository\RecordMappingRepository;
+use Ttree\ContentRepositoryImporter\Exception\ImportAlreadyExecutedException;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Persistence\PersistenceManagerInterface;
@@ -62,13 +63,32 @@ class ImportService
 
     /**
      * Start a new Import
+     *
+     * @param string $externalImportIdentifier
+     * @param boolean $force
+     * @throws Exception
+     * @throws \TYPO3\Flow\Persistence\Exception\IllegalObjectTypeException
      */
-    public function start()
+    public function start($externalImportIdentifier = null, $force = false)
     {
         if ($this->currentImport instanceof Import) {
             throw new Exception('Unable to start a new import, please stop the current import first', 1426638560);
         }
+
+        if ($externalImportIdentifier !== null) {
+            $existingImport = $this->importRepository->findOneByExternalImportIdentifier($externalImportIdentifier);
+            if (!$force  && $existingImport instanceof Import) {
+                throw new ImportAlreadyExecutedException(sprintf('An import referring to the external identifier "%s" has already been executed on %s.', $externalImportIdentifier, $existingImport->getStart()->format('d.m.Y h:m:s')), 1464028408403);
+            }
+        }
+
         $this->currentImport = new Import();
+        $this->currentImport->setExternalImportIdentifier($externalImportIdentifier);
+
+        if ($force && isset($existingImport)) {
+            $this->addEventMessage(sprintf('ImportService:start', 'Forcing re-import of data set with external identifier "%s".', $externalImportIdentifier), LOG_NOTICE);
+        }
+
         $this->importRepository->add($this->currentImport);
     }
 
