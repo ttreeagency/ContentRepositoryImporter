@@ -48,7 +48,7 @@ abstract class AbstractImporter implements ImporterInterface
      *
      * @var string
      */
-    protected $storageNodeTypeName = 'TYPO3.Neos.NodeTypes:Page';
+    protected $storageNodeTypeName = 'Neos.NodeTypes:Page';
 
     /**
      * Key name for getExternalIdentifierFromRecordData() to determine the external identifier of a record
