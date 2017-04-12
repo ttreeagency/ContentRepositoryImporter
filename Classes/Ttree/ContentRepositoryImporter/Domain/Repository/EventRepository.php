@@ -10,7 +10,7 @@ use Neos\Flow\Annotations as Flow;
 /**
  * @Flow\Scope("singleton")
  */
-class EventRepository extends \TYPO3\Neos\EventLog\Domain\Repository\EventRepository
+class EventRepository extends \Neos\Neos\EventLog\Domain\Repository\EventRepository
 {
     /**
      * Remove all events without checking foreign keys. Needed for clearing the table during tests.

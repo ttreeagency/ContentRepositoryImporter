@@ -6,7 +6,7 @@ namespace Ttree\ContentRepositoryImporter\Domain\Model;
  */
 
 use Neos\Flow\Annotations as Flow;
-use TYPO3\Neos\EventLog\Domain\Model\NodeEvent;
+use Neos\Neos\EventLog\Domain\Model\NodeEvent;
 
 /**
  * A specific event used by the ContentRepositoryImporter

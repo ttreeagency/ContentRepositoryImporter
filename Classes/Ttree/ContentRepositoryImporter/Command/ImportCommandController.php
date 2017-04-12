@@ -18,7 +18,7 @@ use Neos\Flow\Exception;
 use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Utility\Arrays;
-use TYPO3\Neos\EventLog\Domain\Service\EventEmittingService;
+use Neos\Neos\EventLog\Domain\Service\EventEmittingService;
 
 /**
  * Import Command Controller

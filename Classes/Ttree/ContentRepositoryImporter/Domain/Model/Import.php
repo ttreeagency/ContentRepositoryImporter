@@ -10,7 +10,7 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
 use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
-use TYPO3\Neos\EventLog\Domain\Service\EventEmittingService;
+use Neos\Neos\EventLog\Domain\Service\EventEmittingService;
 
 /**
  * @Flow\Entity
@@ -80,7 +80,7 @@ class Import
      * @param array $data
      * @param Event $parentEvent
      * @return Event
-     * @throws \TYPO3\Neos\Exception
+     * @throws \Neos\Neos\Exception
      */
     public function addEvent($eventType, $externalIdentifier = null, array $data = null, Event $parentEvent = null)
     {
