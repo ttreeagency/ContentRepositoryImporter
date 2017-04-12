@@ -1,9 +1,9 @@
 {
     "name": "ttree/contentrepositoryimporter",
-    "type": "typo3-flow-package",
-    "description": "Helper package to import data in the TYPO3CR",
+    "type": "neos-flow-package",
+    "description": "Helper package to import data in the Neos content repository",
     "require": {
-        "typo3/flow": "*",
+        "neos/flow": ">3.0",
         "ezyang/htmlpurifier": "*",
         "cocur/slugify": "*",
         "typo3/neos": "*"
