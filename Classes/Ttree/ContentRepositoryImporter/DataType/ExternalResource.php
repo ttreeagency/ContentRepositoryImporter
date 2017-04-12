@@ -9,7 +9,7 @@ use Gedmo\Uploadable\MimeType\MimeTypeGuesser;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Log\SystemLoggerInterface;
-use TYPO3\Flow\Resource\ResourceManager;
+use TYPO3\Flow\ResourceManagement\ResourceManager;
 use TYPO3\Flow\Utility\Files;
 use TYPO3\Flow\Utility\MediaTypes;
 
@@ -62,7 +62,7 @@ class ExternalResource extends DataType
     /**
      * @param string $value
      * @throws Exception
-     * @throws \TYPO3\Flow\Resource\Exception
+     * @throws \TYPO3\Flow\ResourceManagement\Exception
      * @throws \TYPO3\Flow\Utility\Exception
      */
     protected function initializeValue($value)
