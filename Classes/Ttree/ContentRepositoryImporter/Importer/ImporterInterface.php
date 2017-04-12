@@ -9,7 +9,7 @@ use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Neos\Flow\Annotations as Flow;
-use TYPO3\TYPO3CR\Domain\Model\NodeTemplate;
+use Neos\ContentRepository\Domain\Model\NodeTemplate;
 
 /**
  * Importer Interface

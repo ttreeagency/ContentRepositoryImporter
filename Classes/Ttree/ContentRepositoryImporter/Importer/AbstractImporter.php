@@ -15,12 +15,12 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
 use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Utility\Arrays;
-use TYPO3\TYPO3CR\Domain\Model\NodeInterface;
-use TYPO3\TYPO3CR\Domain\Model\NodeTemplate;
-use TYPO3\TYPO3CR\Domain\Model\NodeType;
-use TYPO3\TYPO3CR\Domain\Repository\NodeDataRepository;
-use TYPO3\TYPO3CR\Domain\Service\ContextFactoryInterface;
-use TYPO3\TYPO3CR\Domain\Service\NodeTypeManager;
+use Neos\ContentRepository\Domain\Model\NodeInterface;
+use Neos\ContentRepository\Domain\Model\NodeTemplate;
+use Neos\ContentRepository\Domain\Model\NodeType;
+use Neos\ContentRepository\Domain\Repository\NodeDataRepository;
+use Neos\ContentRepository\Domain\Service\ContextFactoryInterface;
+use Neos\ContentRepository\Domain\Service\NodeTypeManager;
 
 /**
  * Abstract Importer
@@ -369,7 +369,7 @@ abstract class AbstractImporter implements ImporterInterface
 
     /**
      * @param NodeTemplate $nodeTemplate
-     * @throws \TYPO3\TYPO3CR\Exception\NodeException
+     * @throws \Neos\ContentRepository\Exception\NodeException
      */
     protected function unsetAllNodeTemplateProperties(NodeTemplate $nodeTemplate)
     {
@@ -553,7 +553,7 @@ abstract class AbstractImporter implements ImporterInterface
      * @param string $nodePath Absolute or relative (to the site node) node path of the storage node
      * @param string $title Title for the storage node document
      * @return void
-     * @throws \TYPO3\TYPO3CR\Exception\NodeTypeNotFoundException
+     * @throws \Neos\ContentRepository\Exception\NodeTypeNotFoundException
      */
     protected function initializeStorageNode($nodePath, $title)
     {

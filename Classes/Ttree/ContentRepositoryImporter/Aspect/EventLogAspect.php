@@ -12,7 +12,7 @@ use Neos\Flow\Aop\JoinPointInterface;
 use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Utility\Arrays;
-use TYPO3\TYPO3CR\Domain\Repository\NodeDataRepository;
+use Neos\ContentRepository\Domain\Repository\NodeDataRepository;
 
 /**
  * Aspect to automatically handle EventLog in Importer object

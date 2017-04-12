@@ -7,7 +7,7 @@ namespace Ttree\ContentRepositoryImporter\Importer;
 
 use Ttree\ContentRepositoryImporter\DataType\Slug;
 use Neos\Flow\Annotations as Flow;
-use TYPO3\TYPO3CR\Domain\Model\NodeTemplate;
+use Neos\ContentRepository\Domain\Model\NodeTemplate;
 
 /**
  * A base importer for data providers which deliver data as commands (create, delete, update, ...) instead of plain
