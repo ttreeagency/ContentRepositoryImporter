@@ -16,7 +16,7 @@ use TYPO3\Flow\Cli\CommandController;
 use TYPO3\Flow\Core\Booting\Scripts;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Log\SystemLoggerInterface;
-use TYPO3\Flow\Object\ObjectManagerInterface;
+use TYPO3\Flow\ObjectManagement\ObjectManagerInterface;
 use TYPO3\Flow\Utility\Arrays;
 use TYPO3\Neos\EventLog\Domain\Service\EventEmittingService;
 
