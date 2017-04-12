@@ -8,7 +8,7 @@ namespace Ttree\ContentRepositoryImporter\DataProvider;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * Database based Data Provider

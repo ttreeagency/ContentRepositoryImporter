@@ -5,7 +5,7 @@ namespace Ttree\ContentRepositoryImporter\Domain\Model;
  * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
  */
 
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 use TYPO3\Neos\EventLog\Domain\Model\NodeEvent;
 
 /**

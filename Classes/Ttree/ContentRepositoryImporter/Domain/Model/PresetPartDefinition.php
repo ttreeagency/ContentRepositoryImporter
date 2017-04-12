@@ -6,7 +6,7 @@ namespace Ttree\ContentRepositoryImporter\Domain\Model;
  */
 
 use Ttree\ContentRepositoryImporter\Exception\InvalidArgumentException;
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * Preset Part Definition

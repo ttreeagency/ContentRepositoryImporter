@@ -5,7 +5,7 @@ namespace Ttree\ContentRepositoryImporter\DataType;
  * This script belongs to the TYPO3 Flow package "Ttree.ContentRepositoryImporter". *
  *                                                                                  */
 
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * Date Data Type

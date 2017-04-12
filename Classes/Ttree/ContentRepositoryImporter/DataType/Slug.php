@@ -6,7 +6,7 @@ namespace Ttree\ContentRepositoryImporter\DataType;
  */
 
 use Cocur\Slugify\Slugify;
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * String Data Type

@@ -6,7 +6,7 @@ namespace Ttree\ContentRepositoryImporter\Importer;
  */
 
 use Ttree\ContentRepositoryImporter\DataType\Slug;
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 use TYPO3\TYPO3CR\Domain\Model\NodeTemplate;
 
 /**

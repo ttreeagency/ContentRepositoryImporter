@@ -7,11 +7,11 @@ namespace Ttree\ContentRepositoryImporter\Aspect;
 
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Importer\ImporterInterface;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Aop\JoinPointInterface;
-use TYPO3\Flow\Log\SystemLoggerInterface;
-use TYPO3\Flow\Persistence\PersistenceManagerInterface;
-use TYPO3\Flow\Utility\Arrays;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Aop\JoinPointInterface;
+use Neos\Flow\Log\SystemLoggerInterface;
+use Neos\Flow\Persistence\PersistenceManagerInterface;
+use Neos\Flow\Utility\Arrays;
 use TYPO3\TYPO3CR\Domain\Repository\NodeDataRepository;
 
 /**

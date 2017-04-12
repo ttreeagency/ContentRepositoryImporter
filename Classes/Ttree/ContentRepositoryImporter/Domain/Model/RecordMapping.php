@@ -6,7 +6,7 @@ namespace Ttree\ContentRepositoryImporter\Domain\Model;
  */
 
 use Doctrine\ORM\Mapping as ORM;
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 use Gedmo\Mapping\Annotation as Gedmo;
 
 /**

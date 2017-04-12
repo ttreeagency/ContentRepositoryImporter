@@ -11,13 +11,13 @@ use Ttree\ContentRepositoryImporter\Domain\Repository\EventRepository;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Exception\ImportAlreadyExecutedException;
 use Ttree\ContentRepositoryImporter\Importer\AbstractImporter;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Cli\CommandController;
-use TYPO3\Flow\Core\Booting\Scripts;
-use TYPO3\Flow\Exception;
-use TYPO3\Flow\Log\SystemLoggerInterface;
-use TYPO3\Flow\ObjectManagement\ObjectManagerInterface;
-use TYPO3\Flow\Utility\Arrays;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Cli\CommandController;
+use Neos\Flow\Core\Booting\Scripts;
+use Neos\Flow\Exception;
+use Neos\Flow\Log\SystemLoggerInterface;
+use Neos\Flow\ObjectManagement\ObjectManagerInterface;
+use Neos\Flow\Utility\Arrays;
 use TYPO3\Neos\EventLog\Domain\Service\EventEmittingService;
 
 /**
@@ -40,7 +40,7 @@ class ImportCommandController extends CommandController
     protected $eventLogRepository;
 
     /**
-     * @Flow\InjectConfiguration(package="TYPO3.Flow")
+     * @Flow\InjectConfiguration(package="Neos.Flow")
      * @var array
      */
     protected $flowSettings;
@@ -273,7 +273,7 @@ class ImportCommandController extends CommandController
      *
      * @param array $presetSettings
      * @param string $preset
-     * @throws \TYPO3\Flow\Mvc\Exception\StopActionException
+     * @throws \Neos\Flow\Mvc\Exception\StopActionException
      */
     protected function checkForPartsSettingsOrQuit(array $presetSettings, $preset)
     {

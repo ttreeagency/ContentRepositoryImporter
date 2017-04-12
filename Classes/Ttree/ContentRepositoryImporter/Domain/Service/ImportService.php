@@ -12,9 +12,9 @@ use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Ttree\ContentRepositoryImporter\Domain\Repository\ImportRepository;
 use Ttree\ContentRepositoryImporter\Domain\Repository\RecordMappingRepository;
 use Ttree\ContentRepositoryImporter\Exception\ImportAlreadyExecutedException;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Exception;
-use TYPO3\Flow\Persistence\PersistenceManagerInterface;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Exception;
+use Neos\Flow\Persistence\PersistenceManagerInterface;
 
 /**
  * @Flow\Scope("singleton")
@@ -67,7 +67,7 @@ class ImportService
      * @param string $externalImportIdentifier
      * @param boolean $force
      * @throws Exception
-     * @throws \TYPO3\Flow\Persistence\Exception\IllegalObjectTypeException
+     * @throws \Neos\Flow\Persistence\Exception\IllegalObjectTypeException
      */
     public function start($externalImportIdentifier = null, $force = false)
     {

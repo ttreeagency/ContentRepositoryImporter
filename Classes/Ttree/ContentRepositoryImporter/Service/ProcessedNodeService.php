@@ -8,7 +8,7 @@ namespace Ttree\ContentRepositoryImporter\Service;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Ttree\ContentRepositoryImporter\Domain\Repository\RecordMappingRepository;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * Processed Node Service

@@ -7,8 +7,8 @@ namespace Ttree\ContentRepositoryImporter\Domain\Repository;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Persistence\Repository;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Persistence\Repository;
 
 /**
  * @Flow\Scope("singleton")

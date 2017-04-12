@@ -6,10 +6,10 @@ namespace Ttree\ContentRepositoryImporter\Domain\Model;
  */
 
 use Doctrine\ORM\Mapping as ORM;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Exception;
-use TYPO3\Flow\Log\SystemLoggerInterface;
-use TYPO3\Flow\ObjectManagement\ObjectManagerInterface;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Exception;
+use Neos\Flow\Log\SystemLoggerInterface;
+use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use TYPO3\Neos\EventLog\Domain\Service\EventEmittingService;
 
 /**

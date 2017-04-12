@@ -2,7 +2,7 @@ Ttree\ContentRepositoryImporter\Service\ProcessedNodeService:
   properties:
     cache:
       object:
-        factoryObjectName: TYPO3\Flow\Cache\CacheManager
+        factoryObjectName: Neos\Flow\Cache\CacheManager
         factoryMethodName: getCache
         arguments:
           1:
@@ -12,7 +12,7 @@ Ttree\ContentRepositoryImporter\Command\ImportCommandController:
   properties:
     cache:
       object:
-        factoryObjectName: TYPO3\Flow\Cache\CacheManager
+        factoryObjectName: Neos\Flow\Cache\CacheManager
         factoryMethodName: getCache
         arguments:
           1:
@@ -22,7 +22,7 @@ Ttree\ContentRepositoryImporter\DataType\ExternalResource:
   properties:
     downloadCache:
       object:
-        factoryObjectName: TYPO3\Flow\Cache\CacheManager
+        factoryObjectName: Neos\Flow\Cache\CacheManager
         factoryMethodName: getCache
         arguments:
           1:

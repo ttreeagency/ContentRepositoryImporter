@@ -6,12 +6,12 @@ namespace Ttree\ContentRepositoryImporter\DataType;
  */
 
 use Gedmo\Uploadable\MimeType\MimeTypeGuesser;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Exception;
-use TYPO3\Flow\Log\SystemLoggerInterface;
-use TYPO3\Flow\ResourceManagement\ResourceManager;
-use TYPO3\Flow\Utility\Files;
-use TYPO3\Flow\Utility\MediaTypes;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Exception;
+use Neos\Flow\Log\SystemLoggerInterface;
+use Neos\Flow\ResourceManagement\ResourceManager;
+use Neos\Flow\Utility\Files;
+use Neos\Flow\Utility\MediaTypes;
 
 /**
  * String Data Type
@@ -62,8 +62,8 @@ class ExternalResource extends DataType
     /**
      * @param string $value
      * @throws Exception
-     * @throws \TYPO3\Flow\ResourceManagement\Exception
-     * @throws \TYPO3\Flow\Utility\Exception
+     * @throws \Neos\Flow\ResourceManagement\Exception
+     * @throws \Neos\Flow\Utility\Exception
      */
     protected function initializeValue($value)
     {

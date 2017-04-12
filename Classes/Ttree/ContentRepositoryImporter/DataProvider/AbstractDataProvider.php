@@ -6,8 +6,8 @@ namespace Ttree\ContentRepositoryImporter\DataProvider;
  */
 
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Log\SystemLoggerInterface;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Log\SystemLoggerInterface;
 
 /**
  * Abstract Data Provider
