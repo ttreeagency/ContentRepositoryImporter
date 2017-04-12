@@ -17,7 +17,7 @@ use Neos\Flow\Core\Booting\Scripts;
 use Neos\Flow\Exception;
 use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
-use Neos\Flow\Utility\Arrays;
+use Neos\Utility\Arrays;
 use TYPO3\Neos\EventLog\Domain\Service\EventEmittingService;
 
 /**

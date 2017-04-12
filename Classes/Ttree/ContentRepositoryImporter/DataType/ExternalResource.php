@@ -10,8 +10,8 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
 use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\ResourceManagement\ResourceManager;
-use Neos\Flow\Utility\Files;
-use Neos\Flow\Utility\MediaTypes;
+use Neos\Utility\Files;
+use Neos\Utility\MediaTypes;
 
 /**
  * String Data Type

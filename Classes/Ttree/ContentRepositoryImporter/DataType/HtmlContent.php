@@ -6,7 +6,7 @@ namespace Ttree\ContentRepositoryImporter\DataType;
  */
 
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Utility\Arrays;
+use Neos\Utility\Arrays;
 
 /**
  * String Data Type
