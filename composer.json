@@ -9,8 +9,8 @@
         "typo3/neos": "*"
     },
     "autoload": {
-        "psr-0": {
-            "Ttree\\ContentRepositoryImporter": "Classes"
+        "psr-4": {
+            "Ttree\\ContentRepositoryImporter\\": "Classes"
         }
     },
     "extra": {
