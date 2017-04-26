@@ -1,6 +1,6 @@
 {
     "name": "ttree/contentrepositoryimporter",
-    "type": "neos-flow-package",
+    "type": "neos-package",
     "description": "Helper package to import data in the Neos content repository",
     "require": {
         "neos/flow": ">3.0",
