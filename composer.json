@@ -3,10 +3,9 @@
     "type": "neos-package",
     "description": "Helper package to import data in the Neos content repository",
     "require": {
-        "neos/flow": ">3.0",
+        "neos/neos": ">3.0"
         "ezyang/htmlpurifier": "*",
         "cocur/slugify": "*",
-        "typo3/neos": "*"
     },
     "autoload": {
         "psr-4": {
