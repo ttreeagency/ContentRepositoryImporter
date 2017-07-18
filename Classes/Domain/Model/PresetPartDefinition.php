@@ -138,6 +138,8 @@ class PresetPartDefinition
         ];
         if ($this->batchSize) {
             $arguments['batchSize'] = (integer)$this->batchSize;
+        } else {
+            $arguments['batchSize'] = 100000;
         }
         if ($this->offset) {
             $arguments['offset'] = (integer)$this->offset;
