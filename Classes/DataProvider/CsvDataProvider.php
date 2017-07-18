@@ -77,10 +77,17 @@ class CsvDataProvider extends AbstractDataProvider
         static $currentLine = 0;
         $dataResult = array();
 
+        if (isset($this->options['skipHeader']) && $this->options['skipHeader'] === true) {
+            $skipLines = 1;
+        } elseif (isset($this->options['skipHeader']) && \is_numeric($this->options['skipHeader'])) {
+            $skipLines = (int)$this->options['skipHeader'];
+        } else {
+            $skipLines = 0;
+        }
         if (($handle = fopen($this->csvFilePath, 'r')) !== false) {
             while (($data = fgetcsv($handle, 65534, $this->csvDelimiter, $this->csvEnclosure)) !== false) {
                 // skip header (maybe is better to set the first offset position instead)
-                if (isset($this->options['skipHeader']) && $this->options['skipHeader'] === true && $currentLine === 0) {
+                if ($currentLine < $skipLines) {
                     $currentLine++;
                     continue;
                 }
@@ -94,7 +101,6 @@ class CsvDataProvider extends AbstractDataProvider
             }
             fclose($handle);
         }
-
         $this->logger->log(sprintf('%s: read %s lines and found %s records.', $this->csvFilePath, $currentLine, count($dataResult)), LOG_DEBUG);
         return $dataResult;
     }
