@@ -214,7 +214,8 @@ class ImportCommandController extends CommandController
             return $count;
         } catch (\Exception $exception) {
             $this->logger->logException($exception);
-            $this->outputLine("Error, please check your logs ...", [$partSetting->getLabel()]);
+            $this->outputLine('Error in parts "%s", please check your logs for more details', [$partSetting->getLabel()]);
+            $this->outputLine('<error>%s</error>', [$exception->getMessage()]);
             $this->importService->addEvent(sprintf('%s:Failed', $partSetting->getEventType()), null, $partSetting->getCommandArguments());
             $this->quit(1);
         }
@@ -255,7 +256,8 @@ class ImportCommandController extends CommandController
             $this->output($importer->getProcessedRecords());
         } catch (\Exception $exception) {
             $this->logger->logException($exception);
-            $this->quit(1);
+            $this->outputLine('<error>%s</error>', [$exception->getMessage()]);
+            $this->sendAndExit(1);
         }
     }
 
