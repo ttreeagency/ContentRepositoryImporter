@@ -139,6 +139,7 @@ class ImportCommandController extends CommandController
 
         $this->checkForPartsSettingsOrQuit($presetSettings, $preset);
 
+
         array_walk($presetSettings['parts'], function ($partSetting, $partName) use ($preset, $parts, $batchSize) {
             $this->elapsedTime = 0;
             $this->batchCounter = 0;
@@ -166,13 +167,15 @@ class ImportCommandController extends CommandController
             }
         });
 
+
         $this->importService->stop();
+
         $import = $this->importService->getLastImport();
 
         $this->outputLine();
         $this->outputLine('Import finished.');
-        $this->outputLine(sprintf('  Started   %s', $import->getStart()->format(DATE_RFC2822)));
-        $this->outputLine(sprintf('  Finished  %s', $import->getEnd()->format(DATE_RFC2822)));
+        $this->outputLine(sprintf('  Started   %s', $import->getStartTime()->format(DATE_RFC2822)));
+        $this->outputLine(sprintf('  Finished  %s', $import->getEndTime()->format(DATE_RFC2822)));
         $this->outputLine(sprintf('  Runtime   %d seconds', $import->getElapsedTime()));
         $this->outputLine();
         $this->outputLine('See log for more details and possible errors.');

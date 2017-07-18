@@ -20,13 +20,13 @@ class Import
     /**
      * @var \DateTime
      */
-    protected $start;
+    protected $startTime;
 
     /**
      * @var \DateTime
      * @ORM\Column(nullable=true)
      */
-    protected $end;
+    protected $endTime;
 
     /**
      * @var string
@@ -52,7 +52,7 @@ class Import
     public function initializeObject($initializationCause)
     {
         if ($initializationCause === ObjectManagerInterface::INITIALIZATIONCAUSE_CREATED) {
-            $this->start = new \DateTime();
+            $this->startTime = new \DateTimeImmutable();
             $this->addImportStartedEvent();
         }
     }
@@ -74,6 +74,7 @@ class Import
     {
         return $this->externalImportIdentifier;
     }
+
     /**
      * @param string $eventType
      * @param string $externalIdentifier
@@ -123,19 +124,19 @@ class Import
     }
 
     /**
-     * @return \DateTime
+     * @return \DateTimeImmutable
      */
-    public function getStart()
+    public function getStartTime()
     {
-        return $this->start;
+        return $this->startTime;
     }
 
     /**
-     * @return \DateTime
+     * @return \DateTimeImmutable
      */
-    public function getEnd()
+    public function getEndTime()
     {
-        return $this->end;
+        return $this->endTime;
     }
 
     /**
@@ -143,7 +144,7 @@ class Import
      */
     public function getElapsedTime()
     {
-        return (integer) $this->end->getTimestamp() - $this->start->getTimestamp();
+        return (integer) $this->endTime->getTimestamp() - $this->startTime->getTimestamp();
     }
 
     /**
@@ -151,10 +152,10 @@ class Import
      */
     public function end()
     {
-        if ($this->end instanceof \DateTime) {
+        if ($this->endTime instanceof \DateTimeImmutable) {
             throw new Exception('This import has ended earlier', 1426763297);
         }
-        $this->end = new \DateTime();
+        $this->endTime = new \DateTimeImmutable();
         $this->addImportEndedEvent();
     }
 }

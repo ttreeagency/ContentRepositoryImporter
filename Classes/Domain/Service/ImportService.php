@@ -78,7 +78,7 @@ class ImportService
         if ($externalImportIdentifier !== null) {
             $existingImport = $this->importRepository->findOneByExternalImportIdentifier($externalImportIdentifier);
             if (!$force  && $existingImport instanceof Import) {
-                throw new ImportAlreadyExecutedException(sprintf('An import referring to the external identifier "%s" has already been executed on %s.', $externalImportIdentifier, $existingImport->getStart()->format('d.m.Y h:m:s')), 1464028408403);
+                throw new ImportAlreadyExecutedException(sprintf('An import referring to the external identifier "%s" has already been executed on %s.', $externalImportIdentifier, $existingImport->getStartTime()->format('d.m.Y h:m:s')), 1464028408403);
             }
         }
 
