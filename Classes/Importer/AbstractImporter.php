@@ -10,6 +10,7 @@ use Ttree\ContentRepositoryImporter\DataType\Slug;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
+use Ttree\ContentRepositoryImporter\Exception\SiteNodeEmptyException;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
@@ -273,11 +274,12 @@ abstract class AbstractImporter implements ImporterInterface
         $context = $this->contextFactory->create($contextConfiguration);
         $this->rootNode = $context->getRootNode();
 
-        if (isset($this->options['siteNodePath'])) {
-            $siteNodePath = $this->options['siteNodePath'];
-            $this->siteNode = $this->rootNode->getNode($siteNodePath);
+        if (isset($this->options['siteNodePath']) || isset($this->options['siteNodeIdentifier'])) {
+            $siteNodePath = isset($this->options['siteNodePath']) ? trim($this->options['siteNodePath']) : null;
+            $siteNodeIdentifier = isset($this->options['siteNodeIdentifier']) ? trim($this->options['siteNodeIdentifier']) : null;
+            $this->siteNode = $this->rootNode->getNode($siteNodePath) ?: $context->getNodeByIdentifier($siteNodeIdentifier);
             if ($this->siteNode === null) {
-                throw new Exception(sprintf('Site node not found (%s)', $siteNodePath), 1425077201);
+                throw new Exception(sprintf('Site node not found (%s)', $siteNodePath ?: $siteNodeIdentifier), 1425077201);
             }
         } else {
             $this->log(get_class($this) . ': siteNodePath is not defined. Please make sure to set the target siteNodePath in your importer options.', LOG_WARNING);
@@ -565,13 +567,25 @@ abstract class AbstractImporter implements ImporterInterface
         $storageNodeTemplate = new NodeTemplate();
         $storageNodeTemplate->setNodeType($this->nodeTypeManager->getNodeType($this->storageNodeTypeName));
 
-        $this->storageNode = $this->siteNode->getNode($nodePath);
+        $this->storageNode = $this->getSiteNode()->getNode($nodePath);
         if ($this->storageNode === null) {
             $storageNodeTemplate->setProperty('title', $title);
             $storageNodeTemplate->setProperty('uriPathSegment', $uriPathSegment);
             $storageNodeTemplate->setName($nodeName);
-            $this->storageNode = $this->siteNode->createNodeFromTemplate($storageNodeTemplate);
+            $this->storageNode = $this->getSiteNode()->createNodeFromTemplate($storageNodeTemplate);
         }
+    }
+
+    /**
+     * @return NodeInterface
+     * @throws SiteNodeEmptyException
+     */
+    protected function getSiteNode()
+    {
+        if (!$this->siteNode instanceof NodeInterface) {
+            throw new SiteNodeEmptyException(get_class($this) . ': siteNodePath is not defined. Please make sure to set the target siteNodePath in your importer options.');
+        }
+        return $this->siteNode;
     }
 
 
