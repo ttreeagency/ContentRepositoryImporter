@@ -408,7 +408,8 @@ abstract class AbstractImporter implements ImporterInterface
         }
         $nodeChanged = false;
         foreach ($data as $propertyName => $propertyValue) {
-            if (substr($propertyName, 0, 1) === '_') {
+            $availableProperties = $nodeOrTemplate->getNodeType()->getProperties();
+            if (\in_array(substr($propertyName, 0, 1), ['_', '@']) || !isset($availableProperties[$propertyName]) ) {
                 continue;
             }
             if ($nodeOrTemplate->getProperty($propertyName) != $propertyValue) {
