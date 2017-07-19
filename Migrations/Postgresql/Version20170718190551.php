@@ -5,7 +5,7 @@ use Doctrine\DBAL\Migrations\AbstractMigration;
 use Doctrine\DBAL\Schema\Schema;
 
 /**
- * Auto-generated Migration: Please modify to your needs! This block will be used as the migration description if getDescription() is not used.
+ * Add tables to store content repository importer data
  */
 class Version20170718190551 extends AbstractMigration
 {
@@ -15,7 +15,7 @@ class Version20170718190551 extends AbstractMigration
      */
     public function getDescription()
     {
-        return '';
+        return 'Add tables to store content repository importer data';
     }
 
     /**
@@ -45,7 +45,5 @@ class Version20170718190551 extends AbstractMigration
         $this->addSql('DROP TABLE ttree_contentrepositoryimporter_domain_model_import');
         $this->addSql('DROP TABLE ttree_contentrepositoryimporter_domain_model_recordmapping');
         $this->addSql('ALTER TABLE neos_neos_eventlog_domain_model_event DROP externalidentifier');
-        $this->addSql('ALTER TABLE neos_neos_eventlog_domain_model_event ALTER data TYPE TEXT');
-        $this->addSql('ALTER TABLE neos_neos_eventlog_domain_model_event ALTER data DROP DEFAULT');
     }
 }
