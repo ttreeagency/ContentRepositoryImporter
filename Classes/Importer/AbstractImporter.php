@@ -495,12 +495,7 @@ abstract class AbstractImporter implements ImporterInterface
      */
     protected function registerNodeProcessing(NodeInterface $node, $externalIdentifier, $externalRelativeUri = null)
     {
-        if (defined('static::IMPORTER_CLASSNAME') === false) {
-            $importerClassName = get_called_class();
-        } else {
-            $importerClassName = static::IMPORTER_CLASSNAME;
-        }
-        $this->processedNodeService->set($importerClassName, $externalIdentifier, $externalRelativeUri, $node->getIdentifier(), $node->getPath());
+        $this->processedNodeService->set(get_called_class(), $externalIdentifier, $externalRelativeUri, $node->getIdentifier(), $node->getPath());
     }
 
     /**
