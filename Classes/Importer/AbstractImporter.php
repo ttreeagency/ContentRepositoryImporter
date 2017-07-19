@@ -371,6 +371,16 @@ abstract class AbstractImporter implements ImporterInterface
     }
 
     /**
+     * @param NodeTemplate $templace
+     * @param array $data
+     * @return NodeInterface
+     */
+    protected function createNodeFromTemplate(NodeTemplate $templace, array $data)
+    {
+        return $this->storageNode->createNodeFromTemplate($templace);
+    }
+
+    /**
      * @param NodeTemplate $nodeTemplate
      * @throws \Neos\ContentRepository\Exception\NodeException
      */
