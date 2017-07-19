@@ -28,10 +28,15 @@ use Neos\ContentRepository\Domain\Service\NodeTypeManager;
  */
 abstract class AbstractImporter implements ImporterInterface
 {
+    /**
+     * A preg pattern to match against UUIDs
+     * @var string
+     */
+    const PATTERN_MATCH_UUID = '/^([a-f0-9]){8}-([a-f0-9]){4}-([a-f0-9]){4}-([a-f0-9]){4}-([a-f0-9]){12}$/';
 
     /**
      * Node path (can be absolute or relative to the current site node) where the "storage node" (ie. the parent
-     * document node for nodes imported by the concrete importer) will be located.
+     * document node for nodes imported by the concrete importer) will be located. You can also use the identifier of the node.
      *
      * @var string
      */
@@ -363,7 +368,7 @@ abstract class AbstractImporter implements ImporterInterface
             $nodeTemplate->setName($nodeName);
             $this->applyProperties($data, $nodeTemplate);
 
-            $node = $this->storageNode->createNodeFromTemplate($nodeTemplate);
+            $node = $this->createNodeFromTemplate($nodeTemplate, $data);
             $this->registerNodeProcessing($node, $externalIdentifier);
         }
 
@@ -564,26 +569,30 @@ abstract class AbstractImporter implements ImporterInterface
      *
      * The storage node is either created or just retrieved and finally stored in $this->storageNode.
      *
-     * @param string $nodePath Absolute or relative (to the site node) node path of the storage node
+     * @param string $nodePathOrIdentifier Absolute or relative (to the site node) node path of the storage node
      * @param string $title Title for the storage node document
      * @return void
      * @throws \Neos\ContentRepository\Exception\NodeTypeNotFoundException
      */
-    protected function initializeStorageNode($nodePath, $title)
+    protected function initializeStorageNode($nodePathOrIdentifier, $title)
     {
-        preg_match('|([a-z0-9\-]+/)*([a-z0-9\-]+)$|', $nodePath, $matches);
-        $nodeName = $matches[2];
-        $uriPathSegment = Slug::create($title)->getValue();
+        if (is_string($nodePathOrIdentifier) && preg_match(self::PATTERN_MATCH_UUID, $nodePathOrIdentifier)) {
+            $this->storageNode = $this->rootNode->getContext()->getNodeByIdentifier($nodePathOrIdentifier);
+        } else {
+            preg_match('|([a-z0-9\-]+/)*([a-z0-9\-]+)$|', $nodePathOrIdentifier, $matches);
+            $nodeName = $matches[2];
+            $uriPathSegment = Slug::create($title)->getValue();
 
-        $storageNodeTemplate = new NodeTemplate();
-        $storageNodeTemplate->setNodeType($this->nodeTypeManager->getNodeType($this->storageNodeTypeName));
+            $storageNodeTemplate = new NodeTemplate();
+            $storageNodeTemplate->setNodeType($this->nodeTypeManager->getNodeType($this->storageNodeTypeName));
 
-        $this->storageNode = $this->getSiteNode()->getNode($nodePath);
-        if ($this->storageNode === null) {
-            $storageNodeTemplate->setProperty('title', $title);
-            $storageNodeTemplate->setProperty('uriPathSegment', $uriPathSegment);
-            $storageNodeTemplate->setName($nodeName);
-            $this->storageNode = $this->getSiteNode()->createNodeFromTemplate($storageNodeTemplate);
+            $this->storageNode = $this->getSiteNode()->getNode($nodePathOrIdentifier);
+            if ($this->storageNode === null) {
+                $storageNodeTemplate->setProperty('title', $title);
+                $storageNodeTemplate->setProperty('uriPathSegment', $uriPathSegment);
+                $storageNodeTemplate->setName($nodeName);
+                $this->storageNode = $this->getSiteNode()->createNodeFromTemplate($storageNodeTemplate);
+            }
         }
     }
 
