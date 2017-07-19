@@ -356,7 +356,7 @@ abstract class AbstractImporter implements ImporterInterface
             if ($node === null) {
                 throw new \Exception(sprintf('Failed retrieving existing node for update. External identifier: %s Node identifier: %s. Maybe the record mapping in the database does not match the existing (imported) nodes anymore.', $externalIdentifier, $recordMapping->getNodeIdentifier()), 1462971366085);
             }
-            $somethingChanged = $this->applyProperties($data, $node);
+            $somethingChanged = $this->applyProperties($this->getPropertiesFromDataProviderPayload($data), $node);
             if ($somethingChanged) {
                 $this->importService->addEventMessage('Node:Processed:Updated', sprintf('Updating existing node %s (%s)', $node->getPath(), $node->getIdentifier()), LOG_INFO, $this->currentEvent);
             } else {
@@ -366,7 +366,7 @@ abstract class AbstractImporter implements ImporterInterface
         } else {
             $nodeTemplate->setNodeType($this->nodeType);
             $nodeTemplate->setName($nodeName);
-            $this->applyProperties($data, $nodeTemplate);
+            $this->applyProperties($this->getPropertiesFromDataProviderPayload($data), $nodeTemplate);
 
             $node = $this->createNodeFromTemplate($nodeTemplate, $data);
             $this->registerNodeProcessing($node, $externalIdentifier);
@@ -397,6 +397,15 @@ abstract class AbstractImporter implements ImporterInterface
             }
             $nodeTemplate->removeProperty($propertyName);
         }
+    }
+
+    /**
+     * @param array $data
+     * @return array
+     */
+    protected function getPropertiesFromDataProviderPayload(array $data)
+    {
+        return $data;
     }
 
     /**
