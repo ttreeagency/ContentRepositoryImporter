@@ -29,8 +29,9 @@ If you need to transport value that will not match the node properties, please p
 
 There is some magic value, those values MUST be on the first level of the array:
 
-- **__label** The label of this record used by the importer mainly for logging (this value is not imported, but useful to follow the process)
-- **__externalIdentifier** The external identifier of the data, this one is really important. The package keep track of imported data, and 
+- **__identifier** (optional) This UUID will be used in the imported node, you should use ```AbstractImporter::applyProperties``` to have this feature, used by default
+- **__externalIdentifier** (required) The external identifier of the data, this one is really important. The package keep track of imported data, and 
+- **__label** (required) The label of this record used by the importer mainly for logging (this value is not imported, but useful to follow the process)
 if you run twice the same import, the imported node will be updated and not created.
 
 **Tips**: If the properties of your nodes are not at the first level of the array, you can override the method ```AbstractImporter::getPropertiesFromDataProviderPayload```

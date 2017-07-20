@@ -443,6 +443,9 @@ abstract class AbstractImporter implements ImporterInterface
                 $nodeChanged = true;
             }
         }
+        if (isset($data['__identifier']) && \is_string($data['__identifier']) && $nodeOrTemplate instanceof NodeTemplate) {
+            $nodeOrTemplate->setIdentifier(trim($data['__identifier']));
+        }
         return $nodeChanged;
     }
 
