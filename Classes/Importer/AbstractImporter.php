@@ -30,12 +30,6 @@ use Neos\ContentRepository\Domain\Service\NodeTypeManager;
 abstract class AbstractImporter implements ImporterInterface
 {
     /**
-     * A preg pattern to match against UUIDs
-     * @var string
-     */
-    const PATTERN_MATCH_UUID = '/^([a-f0-9]){8}-([a-f0-9]){4}-([a-f0-9]){4}-([a-f0-9]){4}-([a-f0-9]){12}$/';
-
-    /**
      * Node path (can be absolute or relative to the current site node) where the "storage node" (ie. the parent
      * document node for nodes imported by the concrete importer) will be located. You can also use the identifier of the node.
      *
@@ -598,8 +592,8 @@ abstract class AbstractImporter implements ImporterInterface
      */
     protected function initializeStorageNode($nodePathOrIdentifier, $title)
     {
-        if (is_string($nodePathOrIdentifier) && preg_match(self::PATTERN_MATCH_UUID, $nodePathOrIdentifier)) {
-            $this->storageNode = $this->rootNode->getContext()->getNodeByIdentifier($nodePathOrIdentifier);
+        if (is_string($nodePathOrIdentifier) && $nodePathOrIdentifier[0] === '#') {
+            $this->storageNode = $this->rootNode->getContext()->getNodeByIdentifier(\substr($nodePathOrIdentifier, 1));
         } else {
             preg_match('|([a-z0-9\-]+/)*([a-z0-9\-]+)$|', $nodePathOrIdentifier, $matches);
             $nodeName = $matches[2];
@@ -615,6 +609,9 @@ abstract class AbstractImporter implements ImporterInterface
                 $storageNodeTemplate->setName($nodeName);
                 $this->storageNode = $this->getSiteNode()->createNodeFromTemplate($storageNodeTemplate);
             }
+        }
+        if (!$this->storageNode instanceof NodeInterface) {
+            throw new Exception('Storage node can not be empty', 1500558744);
         }
     }
 
