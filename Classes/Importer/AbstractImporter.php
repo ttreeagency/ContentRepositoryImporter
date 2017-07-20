@@ -64,7 +64,7 @@ abstract class AbstractImporter implements ImporterInterface
      * @var string
      * @api
      */
-    protected $externalIdentifierDataKey = 'id';
+    protected $externalIdentifierDataKey = '__externalIdentifier';
 
     /**
      * Key name for getLabelFromCommandData() to determine a meaningful label for a record from $commandData.
@@ -73,7 +73,7 @@ abstract class AbstractImporter implements ImporterInterface
      * @var string
      * @api
      */
-    protected $labelDataKey = 'label';
+    protected $labelDataKey = '__label';
 
     /**
      * If set, names of new nodes created by this importer will be prefixed with the given string
