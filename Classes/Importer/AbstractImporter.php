@@ -370,9 +370,9 @@ abstract class AbstractImporter implements ImporterInterface
             }
             $somethingChanged = $this->applyProperties($this->getPropertiesFromDataProviderPayload($data), $node);
             if ($somethingChanged) {
-                $this->importService->addEventMessage('Node:Processed:Updated', sprintf('Updating existing node %s (%s)', $node->getPath(), $node->getIdentifier()), LOG_INFO, $this->currentEvent);
+                $this->importService->addEventMessage('Node:Processed:Updated', sprintf('Updating existing node "%s" %s (%s)', $node->getLabel(), $node->getPath(), $node->getIdentifier()), \LOG_INFO, $this->currentEvent);
             } else {
-                $this->importService->addEventMessage('Node:Processed:Skipped', sprintf('Skipping unchanged node %s (%s)', $node->getPath(), $node->getIdentifier()), LOG_INFO, $this->currentEvent);
+                $this->importService->addEventMessage('Node:Processed:Skipped', sprintf('Skipping unchanged node "%s" %s (%s)', $node->getLabel(), $node->getPath(), $node->getIdentifier()), \LOG_NOTICE, $this->currentEvent);
             }
 
         } else {
