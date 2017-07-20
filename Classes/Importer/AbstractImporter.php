@@ -341,6 +341,19 @@ abstract class AbstractImporter implements ImporterInterface
         $this->postProcessing($records);
     }
 
+    public function withStorageNode(NodeInterface $storageNode, \Closure $closure)
+    {
+        $previousStorageNode = $this->storageNode;
+        try {
+            $this->storageNode = $storageNode;
+            $closure();
+            $this->storageNode = $previousStorageNode;
+        } catch (\Exception $exception) {
+            $this->storageNode = $previousStorageNode;
+            throw $exception;
+        }
+    }
+
     /**
      * Processes a single record
      *
