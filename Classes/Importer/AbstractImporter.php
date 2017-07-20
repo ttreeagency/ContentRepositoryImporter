@@ -5,6 +5,7 @@ namespace Ttree\ContentRepositoryImporter\Importer;
  * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
  */
 
+use Neos\Flow\Property\PropertyMapper;
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\DataType\Slug;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;
@@ -107,6 +108,12 @@ abstract class AbstractImporter implements ImporterInterface
      * @var NodeTemplate
      */
     protected $nodeTemplate;
+
+    /**
+     * @Flow\Inject
+     * @var PropertyMapper
+     */
+    protected $propertyMapper;
 
     /**
      * @Flow\Inject
@@ -331,6 +338,9 @@ abstract class AbstractImporter implements ImporterInterface
         $records = $this->preProcessing($records);
 
         array_walk($records, function ($data) use ($nodeTemplate) {
+            if (!\is_array($data)) {
+                $data = $this->propertyMapper->convert($data, 'array');
+            }
             $this->processRecord($nodeTemplate, $data);
             ++$this->processedRecords;
         });
