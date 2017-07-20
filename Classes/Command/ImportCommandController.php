@@ -196,12 +196,14 @@ class ImportCommandController extends CommandController
             $startTime = microtime(true);
 
             ++$this->batchCounter;
-            ob_start();
-            $status = Scripts::executeCommand('ttree.contentrepositoryimporter:import:executebatch', $this->flowSettings, true, $partSetting->getCommandArguments());
+            ob_start(NULL, 1<<20);
+            $commandIdentifier = 'ttree.contentrepositoryimporter:import:executebatch';
+            $status = Scripts::executeCommand($commandIdentifier, $this->flowSettings, true, $partSetting->getCommandArguments());
             if ($status !== true) {
-                throw new Exception('Sub command failed', 1426767159);
+                throw new Exception(\vsprintf('Command: %s with parameters: %s', [$commandIdentifier, \json_encode($partSetting->getCommandArguments())]), 1426767159);
             }
-            $count = (integer)ob_get_clean();
+            $output = explode(\PHP_EOL, ob_get_clean());
+            $count = (int)\array_pop($output);
             if ($count < 1) {
                 return 0;
             }
