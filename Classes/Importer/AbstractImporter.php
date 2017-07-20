@@ -279,6 +279,9 @@ abstract class AbstractImporter implements ImporterInterface
         $context = $this->contextFactory->create($contextConfiguration);
         $this->rootNode = $context->getRootNode();
 
+        $this->applyOption($this->storageNodeNodePath, 'storageNodeNodePath');
+        $this->applyOption($this->nodeTypeName, 'nodeTypeName');
+
         if (isset($this->options['siteNodePath']) || isset($this->options['siteNodeIdentifier'])) {
             $siteNodePath = isset($this->options['siteNodePath']) ? trim($this->options['siteNodePath']) : null;
             $siteNodeIdentifier = isset($this->options['siteNodeIdentifier']) ? trim($this->options['siteNodeIdentifier']) : null;
@@ -289,6 +292,11 @@ abstract class AbstractImporter implements ImporterInterface
         } else {
             $this->log(get_class($this) . ': siteNodePath is not defined. Please make sure to set the target siteNodePath in your importer options.', LOG_WARNING);
         }
+    }
+
+    protected function applyOption(&$option, $optionName)
+    {
+        $option = isset($this->options[$optionName]) ? $this->options[$optionName] : $option;
     }
 
     /**
