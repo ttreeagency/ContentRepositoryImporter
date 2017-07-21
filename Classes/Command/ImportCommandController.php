@@ -7,7 +7,9 @@ namespace Ttree\ContentRepositoryImporter\Command;
 
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\Domain\Model\PresetPartDefinition;
+use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Ttree\ContentRepositoryImporter\Domain\Repository\EventRepository;
+use Ttree\ContentRepositoryImporter\Domain\Repository\RecordMappingRepository;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Exception\ImportAlreadyExecutedException;
 use Ttree\ContentRepositoryImporter\Importer\AbstractImporter;
@@ -38,6 +40,12 @@ class ImportCommandController extends CommandController
      * @var EventRepository
      */
     protected $eventLogRepository;
+
+    /**
+     * @Flow\Inject
+     * @var RecordMappingRepository
+     */
+    protected $recordMapperRepository;
 
     /**
      * @Flow\InjectConfiguration(package="Neos.Flow")
@@ -107,11 +115,20 @@ class ImportCommandController extends CommandController
             $this->outputPartTitle($partSetting, $partName);
 
             if ($parts !== array() && !in_array($partName, $parts)) {
-                $this->outputLine('Skipped');
+                $this->outputLine('<error>~</error> Skipped');
                 return;
             }
 
-            \Neos\Flow\var_dump($partSetting);
+            if (!isset($partSetting['importerClassName'])) {
+                $this->outputLine('<error>Missing importerClassName in the current preset part (%s/%s), check your settings</error>', [$preset, $partName]);
+                return;
+            }
+
+            $identifier = $partSetting['importerClassName'] . '@' . $preset . '/' . $partName;
+            /** @var RecordMapping $recordMapper */
+            foreach ($this->recordMapperRepository->findByImporterClassName($identifier) as $recordMapper) {
+                $this->recordMapperRepository->remove($recordMapper);
+            }
         });
     }
 
