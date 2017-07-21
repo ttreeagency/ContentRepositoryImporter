@@ -35,10 +35,11 @@ class ProcessedNodeService
      * @param string $externalRelativeUri
      * @param string $nodeIdentifier
      * @param string $nodePath
+     * @param string $presetPath
      */
-    public function set($importerClassName, $externalIdentifier, $externalRelativeUri, $nodeIdentifier, $nodePath)
+    public function set($importerClassName, $externalIdentifier, $externalRelativeUri, $nodeIdentifier, $nodePath, $presetPath)
     {
-        $this->importService->addOrUpdateRecordMapping($importerClassName, $externalIdentifier, $externalRelativeUri, $nodeIdentifier, $nodePath);
+        $this->importService->addOrUpdateRecordMapping($this->buildImporterClassName($importerClassName, $presetPath), $externalIdentifier, $externalRelativeUri, $nodeIdentifier, $nodePath);
     }
 
     /**
@@ -46,8 +47,13 @@ class ProcessedNodeService
      * @param string $externalIdentifier
      * @return RecordMapping
      */
-    public function get($importerClassName, $externalIdentifier)
+    public function get($importerClassName, $externalIdentifier, $presetPath)
     {
-        return $this->recordMappingRepository->findOneByImporterClassNameAndExternalIdentifier($importerClassName, $externalIdentifier);
+        return $this->recordMappingRepository->findOneByImporterClassNameAndExternalIdentifier($this->buildImporterClassName($importerClassName, $presetPath), $externalIdentifier);
+    }
+
+    protected function buildImporterClassName($importerClassName, $presetPath)
+    {
+        return $importerClassName . '@' . $presetPath;
     }
 }

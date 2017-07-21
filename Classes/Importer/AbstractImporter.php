@@ -192,6 +192,16 @@ abstract class AbstractImporter implements ImporterInterface
     protected $processedRecords = 0;
 
     /**
+     * @var string
+     */
+    protected $presetName;
+
+    /**
+     * @var string
+     */
+    protected $partName;
+
+    /**
      * Mapping between severity constants and string
      *
      * @var array
@@ -214,6 +224,9 @@ abstract class AbstractImporter implements ImporterInterface
     public function __construct(array $options, $currentImportIdentifier)
     {
         $this->options = $options;
+        $this->presetName = $options['__presetName'];
+        $this->partName = $options['__partName'];
+        unset($this->options['__presetName'], $this->options['__partName']);
         $this->currentImportIdentifier = $currentImportIdentifier;
     }
 
@@ -523,7 +536,7 @@ abstract class AbstractImporter implements ImporterInterface
      */
     protected function registerNodeProcessing(NodeInterface $node, $externalIdentifier, $externalRelativeUri = null)
     {
-        $this->processedNodeService->set(get_called_class(), $externalIdentifier, $externalRelativeUri, $node->getIdentifier(), $node->getPath());
+        $this->processedNodeService->set(get_called_class(), $externalIdentifier, $externalRelativeUri, $node->getIdentifier(), $node->getPath(), $this->presetPath());
     }
 
     /**
@@ -532,7 +545,15 @@ abstract class AbstractImporter implements ImporterInterface
      */
     protected function getNodeProcessing($externalIdentifier)
     {
-        return $this->processedNodeService->get(get_called_class(), $externalIdentifier);
+        return $this->processedNodeService->get(get_called_class(), $externalIdentifier, $this->presetPath());
+    }
+
+    /**
+     * @return string
+     */
+    protected function presetPath()
+    {
+        return $this->presetName . '/' . $this->partName;
     }
 
     /**
