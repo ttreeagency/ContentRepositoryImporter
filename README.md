@@ -11,6 +11,7 @@ What's included ?
 * DataProvider: used to prepare and cleanup data from the external source
 * Importer: get the data from the DataProvider and push everything in the CR
 * DataType: Simple object used to cleanup value and share code between DataProvider
+* Split your import in multiple sub commands to avoid high memory usage
 * No big magic, you can always take control by overriding the default configuration and methods
 
 A basic DataProvider
@@ -24,13 +25,13 @@ It's important to update the ```count``` property when you process data from the
 you can decide to skip some data (invalid data, missing values, ...) so we can not use the SQL count feature.
 
 Try to do most of the data cleaning up in the data provider, so the data would arrive to the importer ready for insertion. 
-Basically the array build the provider should contains the data with the property name that match your node type property name.
+Basically the array build by the provider should contains the data with the property name that match your node type property name.
 If you need to transport value that will not match the node properties, please prefix them with '_'. 
 
 There is some magic value, those values MUST be on the first level of the array:
 
 - **__identifier** (optional) This UUID will be used in the imported node, you should use ```AbstractImporter::applyProperties``` to have this feature, used by default
-- **__externalIdentifier** (required) The external identifier of the data, this one is really important. The package keep track of imported data, and 
+- **__externalIdentifier** (required) The external identifier of the data, this one is really important. The package keep track of imported data 
 - **__label** (required) The label of this record used by the importer mainly for logging (this value is not imported, but useful to follow the process)
 if you run twice the same import, the imported node will be updated and not created.
 
@@ -91,8 +92,7 @@ Every data importer must extend the ``AbstractImporter`` abstract class or imple
 
 In the `processRecord` method you handle the processing of every record, such as creating Content Repository node for each incoming data record.
  
-Do not forget to register the processed nodes with `registerNodeProcessing`. The method will handle feature like logging and tracking of imported node to decide
-if the local node need to be created or updated.
+Do not forget to register the processed nodes with `registerNodeProcessing`. The method will handle feature like logging and tracking of imported node to decide if the local node need to be created or updated.
  
 ```php
 class ProductImporter extends AbstractImporter
@@ -190,7 +190,7 @@ Ttree:
 Start your import process
 -------------------------
 
-**Tips**: Do not forget to require this package from the package in which you do the importing, to ensure the correct loading order, so the setting would get overriden correctly.
+**Tips**: Do not forget to require this package from the package in which you do the importing, to ensure the correct loading order, so the settings would get overriden correctly.
 
 From the CLI:
 

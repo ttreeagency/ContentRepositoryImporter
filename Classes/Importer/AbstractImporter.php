@@ -622,16 +622,18 @@ abstract class AbstractImporter implements ImporterInterface
      *
      * The storage node is either created or just retrieved and finally stored in $this->storageNode.
      *
-     * @param string $nodePathOrIdentifier Absolute or relative (to the site node) node path of the storage node
+     * @param string $nodePathOrIdentifier A nodeIdentifier (prefixed with #) or an absolute or relative (to the site node) node path of the storage node
      * @param string $title Title for the storage node document
      * @return void
-     * @throws \Neos\ContentRepository\Exception\NodeTypeNotFoundException
+     * @throws Exception
      */
     protected function initializeStorageNode($nodePathOrIdentifier, $title)
     {
         if (is_string($nodePathOrIdentifier) && $nodePathOrIdentifier[0] === '#') {
             $this->storageNode = $this->rootNode->getContext()->getNodeByIdentifier(\substr($nodePathOrIdentifier, 1));
         } else {
+            $this->storageNode = $this->getSiteNode()->getNode($nodePathOrIdentifier);
+
             preg_match('|([a-z0-9\-]+/)*([a-z0-9\-]+)$|', $nodePathOrIdentifier, $matches);
             $nodeName = $matches[2];
             $uriPathSegment = Slug::create($title)->getValue();
@@ -639,7 +641,6 @@ abstract class AbstractImporter implements ImporterInterface
             $storageNodeTemplate = new NodeTemplate();
             $storageNodeTemplate->setNodeType($this->nodeTypeManager->getNodeType($this->storageNodeTypeName));
 
-            $this->storageNode = $this->getSiteNode()->getNode($nodePathOrIdentifier);
             if ($this->storageNode === null) {
                 $storageNodeTemplate->setProperty('title', $title);
                 $storageNodeTemplate->setProperty('uriPathSegment', $uriPathSegment);
@@ -647,6 +648,7 @@ abstract class AbstractImporter implements ImporterInterface
                 $this->storageNode = $this->getSiteNode()->createNodeFromTemplate($storageNodeTemplate);
             }
         }
+
         if (!$this->storageNode instanceof NodeInterface) {
             throw new Exception('Storage node can not be empty', 1500558744);
         }

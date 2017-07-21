@@ -9,7 +9,7 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
 
 /**
- * Site Node Empty Exception Exception
+ * Site Node Empty Exception
  */
 class SiteNodeEmptyException extends Exception
 {
