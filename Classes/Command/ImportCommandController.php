@@ -93,6 +93,44 @@ class ImportCommandController extends CommandController
     }
 
     /**
+     * Reset the mapping between external identifier and local nodes
+     *
+     * @param string $preset
+     * @param string $parts
+     */
+    public function initCommand($preset, $parts = null)
+    {
+        $parts = Arrays::trimExplode(',', $parts);
+        $presetSettings = $this->loadPreset($preset);
+        array_walk($presetSettings['parts'], function ($partSetting, $partName) use ($preset, $parts) {
+            $this->outputLine();
+            $this->outputPartTitle($partSetting, $partName);
+
+            if ($parts !== array() && !in_array($partName, $parts)) {
+                $this->outputLine('Skipped');
+                return;
+            }
+
+            \Neos\Flow\var_dump($partSetting);
+        });
+    }
+
+    /**
+     * Show the different pars of the preset
+     *
+     * @param string $preset
+     * @param string $parts
+     */
+    public function showCommand($preset)
+    {
+        $presetSettings = $this->loadPreset($preset);
+        array_walk($presetSettings['parts'], function ($partSetting, $partName) use ($preset) {
+            $this->outputLine();
+            $this->outputPartTitle($partSetting, $partName);
+        });
+    }
+
+    /**
      * Run batch import
      *
      * This executes a batch import as configured in the settings for the specified preset. Optionally the "parts" can
