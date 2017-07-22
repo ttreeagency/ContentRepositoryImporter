@@ -54,6 +54,45 @@ Your provider should output something like this:
 **Tips**: If your provider does not return an array, you MUST registrer a TypeConverter to convert it to an array. The property mapper is 
 used automatically by the Importer. 
 
+### Content Dimensions support
+
+If your data provider follow this convention, the importer can automatically create variants of your nodes:
+
+```
+	[
+		'__label' => 'The external content lable, for internal use'
+		'__externalIdentifier' => 'The external external identifier, for internal use'
+		'title' => 'My title'
+		'year' => 1999
+		'text' => '...',
+                       
+	    '@dimensions' => [
+		   '@en' => [
+			   '@strategy' => 'merge',
+			   'title' => '...',
+		   ],
+		   '@fr' => [
+			   '@strategy' => 'merge',
+			   'title' => '...',
+		   ],
+	    ]
+	]
+```
+
+The ```@en``` is a preset name, you must configuration the presets on your ```Settings.yaml```:
+
+```
+Hsso:
+  Importer:
+    dimensionPresets:
+      fr:
+        language: ['fr', 'en', 'de']
+      en:
+        language: ['en', 'de']
+      de:
+        language: ['de']
+```
+
 ### Basic provider
 
 ```php
