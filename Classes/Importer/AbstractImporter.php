@@ -12,6 +12,8 @@ use Ttree\ContentRepositoryImporter\Domain\Model\Event;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Exception\SiteNodeEmptyException;
+use Ttree\ContentRepositoryImporter\Service\DimensionsImporter;
+use Ttree\ContentRepositoryImporter\Service\NodePropertyMapper;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
@@ -169,6 +171,18 @@ abstract class AbstractImporter implements ImporterInterface
      * @var DataProviderInterface
      */
     protected $dataProvider;
+
+    /**
+     * @var DimensionsImporter
+     * @Flow\Inject
+     */
+    protected $dimensionsImporter;
+
+    /**
+     * @var NodePropertyMapper
+     * @Flow\Inject
+     */
+    protected $nodePropertyMapper;
 
     /**
      * @Flow\InjectConfiguration(package="Ttree.ContentRepositoryImporter")
@@ -394,12 +408,7 @@ abstract class AbstractImporter implements ImporterInterface
             if ($node === null) {
                 throw new \Exception(sprintf('Failed retrieving existing node for update. External identifier: %s Node identifier: %s. Maybe the record mapping in the database does not match the existing (imported) nodes anymore.', $externalIdentifier, $recordMapping->getNodeIdentifier()), 1462971366085);
             }
-            $somethingChanged = $this->applyProperties($this->getPropertiesFromDataProviderPayload($data), $node);
-            if ($somethingChanged) {
-                $this->importService->addEventMessage('Node:Processed:Updated', sprintf('Updating existing node "%s" %s (%s)', $node->getLabel(), $node->getPath(), $node->getIdentifier()), \LOG_INFO, $this->currentEvent);
-            } else {
-                $this->importService->addEventMessage('Node:Processed:Skipped', sprintf('Skipping unchanged node "%s" %s (%s)', $node->getLabel(), $node->getPath(), $node->getIdentifier()), \LOG_NOTICE, $this->currentEvent);
-            }
+            $this->applyProperties($this->getPropertiesFromDataProviderPayload($data), $node);
 
         } else {
             $nodeTemplate->setNodeType($this->nodeType);
@@ -409,6 +418,8 @@ abstract class AbstractImporter implements ImporterInterface
             $node = $this->createNodeFromTemplate($nodeTemplate, $data);
             $this->registerNodeProcessing($node, $externalIdentifier);
         }
+
+        $this->dimensionsImporter->process($node, $data, $this->currentEvent);
 
         return $node;
     }
@@ -455,24 +466,7 @@ abstract class AbstractImporter implements ImporterInterface
      */
     protected function applyProperties(array $data, $nodeOrTemplate)
     {
-        if (!$nodeOrTemplate instanceof NodeInterface && !$nodeOrTemplate instanceof NodeTemplate) {
-            throw new \InvalidArgumentException(sprintf('$nodeOrTemplate must be either an object implementing NodeInterface or a NodeTemplate, %s given.', (is_object($nodeOrTemplate) ? get_class($nodeOrTemplate) : gettype($nodeOrTemplate))), 1462958554616);
-        }
-        $nodeChanged = false;
-        foreach ($data as $propertyName => $propertyValue) {
-            $availableProperties = $nodeOrTemplate->getNodeType()->getProperties();
-            if (\in_array(substr($propertyName, 0, 1), ['_', '@']) || !isset($availableProperties[$propertyName]) ) {
-                continue;
-            }
-            if ($nodeOrTemplate->getProperty($propertyName) != $propertyValue) {
-                $nodeOrTemplate->setProperty($propertyName, $propertyValue);
-                $nodeChanged = true;
-            }
-        }
-        if (isset($data['__identifier']) && \is_string($data['__identifier']) && $nodeOrTemplate instanceof NodeTemplate) {
-            $nodeOrTemplate->setIdentifier(trim($data['__identifier']));
-        }
-        return $nodeChanged;
+        return $this->nodePropertyMapper->map($data, $nodeOrTemplate, $this->currentEvent);
     }
 
     /**

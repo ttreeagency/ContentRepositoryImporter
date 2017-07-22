@@ -10,6 +10,9 @@ Ttree:
         user: ''
         password: ''
 
+    dimensionsImporter:
+      presets: []
+
     dataTypeOptions:
       'Ttree\ContentRepositoryImporter\DataType\ExternalResource':
         downloadDirectory: '%FLOW_PATH_DATA%Persistent/Ttree.ContentRepositoryImporter/Downloads/'
