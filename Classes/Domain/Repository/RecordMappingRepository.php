@@ -1,10 +1,6 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Domain\Repository;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
 use Doctrine\Common\Persistence\ObjectManager;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Neos\Flow\Annotations as Flow;

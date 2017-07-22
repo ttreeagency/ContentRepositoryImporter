@@ -1,10 +1,6 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Domain\Model;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;

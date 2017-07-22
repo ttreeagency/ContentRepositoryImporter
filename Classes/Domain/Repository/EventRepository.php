@@ -1,10 +1,6 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Domain\Repository;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
 use Doctrine\DBAL\Connection;
 use Neos\Flow\Annotations as Flow;
 use Neos\Neos\EventLog\Domain\Repository\EventRepository as NeosEventRepository;

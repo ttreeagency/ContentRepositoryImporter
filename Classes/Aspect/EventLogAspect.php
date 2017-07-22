@@ -1,10 +1,6 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Aspect;
 
-/*                                                                                
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Importer\ImporterInterface;
 use Neos\Flow\Annotations as Flow;

@@ -1,10 +1,6 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Importer;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
 use Neos\Flow\Property\PropertyMapper;
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\DataType\Slug;

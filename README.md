@@ -1,7 +1,7 @@
 ContentRepositoryImporter
 =========================
 
-This package contains generic utility to help importing data in the TYPO3 Content Repository (TYPO3CR) used by Neos.
+This package contains generic utility to help importing data in the Neos Content Repository.
 
 What's included ?
 -----------------

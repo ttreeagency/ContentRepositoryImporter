@@ -1,10 +1,6 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\DataType;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
 use Cocur\Slugify\Slugify;
 use Neos\Flow\Annotations as Flow;
 

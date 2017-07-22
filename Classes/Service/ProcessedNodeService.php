@@ -1,10 +1,6 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Service;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Ttree\ContentRepositoryImporter\Domain\Repository\RecordMappingRepository;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
