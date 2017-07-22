@@ -1,7 +1,8 @@
 {
+    "description": "Helper package to import data in the Neos content repository",
     "name": "ttree/contentrepositoryimporter",
     "type": "neos-package",
-    "description": "Helper package to import data in the Neos content repository",
+    "license": "MIT",
     "require": {
         "neos/neos": ">3.0",
         "ezyang/htmlpurifier": "*",
