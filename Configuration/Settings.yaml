@@ -34,7 +34,7 @@ Ttree:
 #      'base':
 #        parts:
 #          'news':
-#           label: 'News Import'
+#            label: 'News Import'
 #            dataProviderClassName: 'Your\Package\Importer\DataProvider\NewsDataProvider'
 #            importerClassName: 'Your\Package\Importer\Importer\NewsImporter'
 #
