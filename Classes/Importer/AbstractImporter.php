@@ -1,6 +1,7 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Importer;
 
+use Neos\Cache\Frontend\VariableFrontend;
 use Neos\Flow\Property\PropertyMapper;
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\DataType\Slug;
@@ -21,6 +22,7 @@ use Neos\ContentRepository\Domain\Model\NodeType;
 use Neos\ContentRepository\Domain\Repository\NodeDataRepository;
 use Neos\ContentRepository\Domain\Service\ContextFactoryInterface;
 use Neos\ContentRepository\Domain\Service\NodeTypeManager;
+use Ttree\ContentRepositoryImporter\Service\Vault;
 
 /**
  * Abstract Importer
@@ -181,6 +183,11 @@ abstract class AbstractImporter implements ImporterInterface
     protected $nodePropertyMapper;
 
     /**
+     * @var Vault
+     */
+    protected $vault;
+
+    /**
      * @Flow\InjectConfiguration(package="Ttree.ContentRepositoryImporter")
      * @var array
      */
@@ -230,12 +237,14 @@ abstract class AbstractImporter implements ImporterInterface
     /**
      * @param array $options
      * @param string $currentImportIdentifier
+     * @param Vault|null $vault
      */
-    public function __construct(array $options, $currentImportIdentifier)
+    public function __construct(array $options, $currentImportIdentifier, Vault $vault)
     {
         $this->options = $options;
         $this->presetName = $options['__presetName'];
         $this->partName = $options['__partName'];
+        $this->vault = $vault;
         unset($this->options['__presetName'], $this->options['__partName']);
         $this->currentImportIdentifier = $currentImportIdentifier;
     }

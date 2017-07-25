@@ -17,6 +17,7 @@ use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Utility\Arrays;
 use Neos\Neos\EventLog\Domain\Service\EventEmittingService;
+use Ttree\ContentRepositoryImporter\Service\Vault;
 
 /**
  * Import Command Controller
@@ -126,6 +127,8 @@ class ImportCommandController extends CommandController
                 $this->recordMapperRepository->remove($recordMapper);
             }
         });
+        $vault = new Vault($preset);
+        $vault->flush();
     }
 
     /**
@@ -322,7 +325,11 @@ class ImportCommandController extends CommandController
     public function executeBatchCommand($presetName, $partName, $dataProviderClassName, $importerClassName, $currentImportIdentifier, $offset = null, $batchSize = null)
     {
         try {
+            $vault = new Vault($this->presetName);
+
             $dataProviderOptions = Arrays::getValueByPath($this->settings, implode('.', ['presets', $presetName, 'parts', $partName, 'dataProviderOptions']));
+            $dataProviderOptions['__presetName'] = $presetName;
+            $dataProviderOptions['__partName'] = $partName;
 
             /** @var DataProviderInterface $dataProvider */
             $dataProvider = $dataProviderClassName::create(is_array($dataProviderOptions) ? $dataProviderOptions : [], $offset, $batchSize);
