@@ -93,6 +93,15 @@ Hsso:
         language: ['de']
 ```
 
+### Share data between preset parts
+
+You can split your import in multiple parts. Each parts is executed in a separate request. Sometimes it's useful to share data between parts (ex. in the first
+part you import the taxonomy, and in the second parts you map documents with the taxonomy). Those solve this use case, we integrate a feature called **Vault**. The
+Vault is simply a cache accessible in the importer and data provider by calling ```$this->vault->set($key, $name)``` and ```$this->vault->get($key)```. The
+current preset is the namespace, so you can use simple keys like name, ids, ...
+
+The cache is flushed if you call ```flow import:init --preset your-preset```. 
+
 ### Basic provider
 
 ```php
