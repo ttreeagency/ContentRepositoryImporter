@@ -6,7 +6,7 @@
     "require": {
         "neos/neos": ">3.0",
         "ezyang/htmlpurifier": "*",
-        "cocur/slugify": "*"
+        "cocur/slugify": "^2.5"
     },
     "autoload": {
         "psr-4": {
