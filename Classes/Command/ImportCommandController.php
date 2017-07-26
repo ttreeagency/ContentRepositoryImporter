@@ -325,7 +325,7 @@ class ImportCommandController extends CommandController
     public function executeBatchCommand($presetName, $partName, $dataProviderClassName, $importerClassName, $currentImportIdentifier, $offset = null, $batchSize = null)
     {
         try {
-            $vault = new Vault($this->presetName);
+            $vault = new Vault($presetName);
 
             $dataProviderOptions = Arrays::getValueByPath($this->settings, implode('.', ['presets', $presetName, 'parts', $partName, 'dataProviderOptions']));
             $dataProviderOptions['__presetName'] = $presetName;
@@ -340,7 +340,7 @@ class ImportCommandController extends CommandController
             $importerOptions = is_array($importerOptions) ? $importerOptions : [];
             $importerOptions['__presetName'] = $presetName;
             $importerOptions['__partName'] = $partName;
-            $importer = $this->objectManager->get($importerClassName, $importerOptions, $currentImportIdentifier);
+            $importer = $this->objectManager->get($importerClassName, $importerOptions, $currentImportIdentifier, $vault);
             $importer->getImportService()->addEventMessage(sprintf('%s:Batch:Started', $importerClassName), sprintf('%s batch started (%s)', $importerClassName, $dataProviderClassName));
             $importer->initialize($dataProvider);
             $importer->process();
