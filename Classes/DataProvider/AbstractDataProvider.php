@@ -1,13 +1,11 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\DataProvider;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
+use Neos\Cache\Frontend\VariableFrontend;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Log\SystemLoggerInterface;
+use Ttree\ContentRepositoryImporter\Service\Vault;
 
 /**
  * Abstract Data Provider
@@ -29,6 +27,11 @@ abstract class AbstractDataProvider implements DataProviderInterface
      * @api
      */
     protected $processedNodeService;
+
+    /**
+     * @var Vault
+     */
+    protected $vault;
 
     /**
      * @var integer
@@ -56,12 +59,26 @@ abstract class AbstractDataProvider implements DataProviderInterface
     protected $options = [];
 
     /**
+     * @var string
+     */
+    protected $presetName;
+
+    /**
+     * @var string
+     */
+    protected $partName;
+
+    /**
      * @param array $options
+     * @param Vault|null $vault
      * @api
      */
-    public function __construct(array $options)
+    public function __construct(array $options, Vault $vault)
     {
         $this->options = $options;
+        $this->presetName = $options['__presetName'];
+        $this->partName = $options['__partName'];
+        $this->vault = $vault;
     }
 
     /**
@@ -75,7 +92,7 @@ abstract class AbstractDataProvider implements DataProviderInterface
      */
     public static function create(array $options = [], $offset = null, $limit = null)
     {
-        $dataProvider = new static($options);
+        $dataProvider = new static($options, new Vault($options['__presetName']));
         $dataProvider->setOffset($offset);
         $dataProvider->setLimit($limit);
 

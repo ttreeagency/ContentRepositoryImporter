@@ -1,16 +1,14 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Domain\Repository;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
+use Doctrine\DBAL\Connection;
 use Neos\Flow\Annotations as Flow;
+use Neos\Neos\EventLog\Domain\Repository\EventRepository as NeosEventRepository;
 
 /**
  * @Flow\Scope("singleton")
  */
-class EventRepository extends \Neos\Neos\EventLog\Domain\Repository\EventRepository
+class EventRepository extends NeosEventRepository
 {
     /**
      * Remove all events without checking foreign keys. Needed for clearing the table during tests.
@@ -19,9 +17,18 @@ class EventRepository extends \Neos\Neos\EventLog\Domain\Repository\EventReposit
      */
     public function removeAll()
     {
+        /** @var Connection $connection */
         $connection = $this->entityManager->getConnection();
-        $connection->query('SET FOREIGN_KEY_CHECKS=0');
-        $connection->query('DELETE FROM typo3_neos_eventlog_domain_model_event WHERE dtype = "ttree_contentrepositoryimporter_event"');
-        $connection->query('SET FOREIGN_KEY_CHECKS=1');
+
+        $isMySQL = $connection->getDriver()->getName() === 'pdo_mysql';
+        if ($isMySQL) {
+            $connection->query('SET FOREIGN_KEY_CHECKS=0');
+        }
+
+        $connection->query("DELETE FROM neos_neos_eventlog_domain_model_event WHERE dtype = 'ttree_contentrepositoryimporter_event'");
+
+        if ($isMySQL) {
+            $connection->query('SET FOREIGN_KEY_CHECKS=1');
+        }
     }
 }

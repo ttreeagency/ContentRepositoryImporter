@@ -1,10 +1,6 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Domain\Model;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
 use Neos\Flow\Annotations as Flow;
 use Neos\Neos\EventLog\Domain\Model\NodeEvent;
 

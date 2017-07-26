@@ -1,15 +1,16 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Importer;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
+use Neos\Cache\Frontend\VariableFrontend;
+use Neos\Flow\Property\PropertyMapper;
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\DataType\Slug;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
+use Ttree\ContentRepositoryImporter\Exception\SiteNodeEmptyException;
+use Ttree\ContentRepositoryImporter\Service\DimensionsImporter;
+use Ttree\ContentRepositoryImporter\Service\NodePropertyMapper;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
@@ -21,16 +22,16 @@ use Neos\ContentRepository\Domain\Model\NodeType;
 use Neos\ContentRepository\Domain\Repository\NodeDataRepository;
 use Neos\ContentRepository\Domain\Service\ContextFactoryInterface;
 use Neos\ContentRepository\Domain\Service\NodeTypeManager;
+use Ttree\ContentRepositoryImporter\Service\Vault;
 
 /**
  * Abstract Importer
  */
 abstract class AbstractImporter implements ImporterInterface
 {
-
     /**
      * Node path (can be absolute or relative to the current site node) where the "storage node" (ie. the parent
-     * document node for nodes imported by the concrete importer) will be located.
+     * document node for nodes imported by the concrete importer) will be located. You can also use the identifier of the node.
      *
      * @var string
      */
@@ -58,7 +59,7 @@ abstract class AbstractImporter implements ImporterInterface
      * @var string
      * @api
      */
-    protected $externalIdentifierDataKey = 'id';
+    protected $externalIdentifierDataKey = '__externalIdentifier';
 
     /**
      * Key name for getLabelFromCommandData() to determine a meaningful label for a record from $commandData.
@@ -67,7 +68,7 @@ abstract class AbstractImporter implements ImporterInterface
      * @var string
      * @api
      */
-    protected $labelDataKey = 'label';
+    protected $labelDataKey = '__label';
 
     /**
      * If set, names of new nodes created by this importer will be prefixed with the given string
@@ -101,6 +102,12 @@ abstract class AbstractImporter implements ImporterInterface
      * @var NodeTemplate
      */
     protected $nodeTemplate;
+
+    /**
+     * @Flow\Inject
+     * @var PropertyMapper
+     */
+    protected $propertyMapper;
 
     /**
      * @Flow\Inject
@@ -164,6 +171,23 @@ abstract class AbstractImporter implements ImporterInterface
     protected $dataProvider;
 
     /**
+     * @var DimensionsImporter
+     * @Flow\Inject
+     */
+    protected $dimensionsImporter;
+
+    /**
+     * @var NodePropertyMapper
+     * @Flow\Inject
+     */
+    protected $nodePropertyMapper;
+
+    /**
+     * @var Vault
+     */
+    protected $vault;
+
+    /**
      * @Flow\InjectConfiguration(package="Ttree.ContentRepositoryImporter")
      * @var array
      */
@@ -185,6 +209,16 @@ abstract class AbstractImporter implements ImporterInterface
     protected $processedRecords = 0;
 
     /**
+     * @var string
+     */
+    protected $presetName;
+
+    /**
+     * @var string
+     */
+    protected $partName;
+
+    /**
      * Mapping between severity constants and string
      *
      * @var array
@@ -203,10 +237,15 @@ abstract class AbstractImporter implements ImporterInterface
     /**
      * @param array $options
      * @param string $currentImportIdentifier
+     * @param Vault|null $vault
      */
-    public function __construct(array $options, $currentImportIdentifier)
+    public function __construct(array $options, $currentImportIdentifier, Vault $vault)
     {
         $this->options = $options;
+        $this->presetName = $options['__presetName'];
+        $this->partName = $options['__partName'];
+        $this->vault = $vault;
+        unset($this->options['__presetName'], $this->options['__partName']);
         $this->currentImportIdentifier = $currentImportIdentifier;
     }
 
@@ -273,15 +312,24 @@ abstract class AbstractImporter implements ImporterInterface
         $context = $this->contextFactory->create($contextConfiguration);
         $this->rootNode = $context->getRootNode();
 
-        if (isset($this->options['siteNodePath'])) {
-            $siteNodePath = $this->options['siteNodePath'];
-            $this->siteNode = $this->rootNode->getNode($siteNodePath);
+        $this->applyOption($this->storageNodeNodePath, 'storageNodeNodePath');
+        $this->applyOption($this->nodeTypeName, 'nodeTypeName');
+
+        if (isset($this->options['siteNodePath']) || isset($this->options['siteNodeIdentifier'])) {
+            $siteNodePath = isset($this->options['siteNodePath']) ? trim($this->options['siteNodePath']) : null;
+            $siteNodeIdentifier = isset($this->options['siteNodeIdentifier']) ? trim($this->options['siteNodeIdentifier']) : null;
+            $this->siteNode = $this->rootNode->getNode($siteNodePath) ?: $context->getNodeByIdentifier($siteNodeIdentifier);
             if ($this->siteNode === null) {
-                throw new Exception(sprintf('Site node not found (%s)', $siteNodePath), 1425077201);
+                throw new Exception(sprintf('Site node not found (%s)', $siteNodePath ?: $siteNodeIdentifier), 1425077201);
             }
         } else {
             $this->log(get_class($this) . ': siteNodePath is not defined. Please make sure to set the target siteNodePath in your importer options.', LOG_WARNING);
         }
+    }
+
+    protected function applyOption(&$option, $optionName)
+    {
+        $option = isset($this->options[$optionName]) ? $this->options[$optionName] : $option;
     }
 
     /**
@@ -316,10 +364,26 @@ abstract class AbstractImporter implements ImporterInterface
         $records = $this->preProcessing($records);
 
         array_walk($records, function ($data) use ($nodeTemplate) {
+            if (!\is_array($data)) {
+                $data = $this->propertyMapper->convert($data, 'array');
+            }
             $this->processRecord($nodeTemplate, $data);
             ++$this->processedRecords;
         });
         $this->postProcessing($records);
+    }
+
+    public function withStorageNode(NodeInterface $storageNode, \Closure $closure)
+    {
+        $previousStorageNode = $this->storageNode;
+        try {
+            $this->storageNode = $storageNode;
+            $closure();
+            $this->storageNode = $previousStorageNode;
+        } catch (\Exception $exception) {
+            $this->storageNode = $previousStorageNode;
+            throw $exception;
+        }
     }
 
     /**
@@ -349,23 +413,30 @@ abstract class AbstractImporter implements ImporterInterface
             if ($node === null) {
                 throw new \Exception(sprintf('Failed retrieving existing node for update. External identifier: %s Node identifier: %s. Maybe the record mapping in the database does not match the existing (imported) nodes anymore.', $externalIdentifier, $recordMapping->getNodeIdentifier()), 1462971366085);
             }
-            $somethingChanged = $this->applyProperties($data, $node);
-            if ($somethingChanged) {
-                $this->importService->addEventMessage('Node:Processed:Updated', sprintf('Updating existing node %s (%s)', $node->getPath(), $node->getIdentifier()), LOG_INFO, $this->currentEvent);
-            } else {
-                $this->importService->addEventMessage('Node:Processed:Skipped', sprintf('Skipping unchanged node %s (%s)', $node->getPath(), $node->getIdentifier()), LOG_INFO, $this->currentEvent);
-            }
+            $this->applyProperties($this->getPropertiesFromDataProviderPayload($data), $node);
 
         } else {
             $nodeTemplate->setNodeType($this->nodeType);
             $nodeTemplate->setName($nodeName);
-            $this->applyProperties($data, $nodeTemplate);
+            $this->applyProperties($this->getPropertiesFromDataProviderPayload($data), $nodeTemplate);
 
-            $node = $this->storageNode->createNodeFromTemplate($nodeTemplate);
+            $node = $this->createNodeFromTemplate($nodeTemplate, $data);
             $this->registerNodeProcessing($node, $externalIdentifier);
         }
 
+        $this->dimensionsImporter->process($node, $data, $this->currentEvent);
+
         return $node;
+    }
+
+    /**
+     * @param NodeTemplate $templace
+     * @param array $data
+     * @return NodeInterface
+     */
+    protected function createNodeFromTemplate(NodeTemplate $templace, array $data)
+    {
+        return $this->storageNode->createNodeFromTemplate($templace);
     }
 
     /**
@@ -383,6 +454,15 @@ abstract class AbstractImporter implements ImporterInterface
     }
 
     /**
+     * @param array $data
+     * @return array
+     */
+    protected function getPropertiesFromDataProviderPayload(array $data)
+    {
+        return $data;
+    }
+
+    /**
      * Applies the given properties ($data) to the given Node or NodeTemplate
      *
      * @param array $data Property names and property values
@@ -391,20 +471,7 @@ abstract class AbstractImporter implements ImporterInterface
      */
     protected function applyProperties(array $data, $nodeOrTemplate)
     {
-        if (!$nodeOrTemplate instanceof NodeInterface && !$nodeOrTemplate instanceof NodeTemplate) {
-            throw new \InvalidArgumentException(sprintf('$nodeOrTemplate must be either an object implementing NodeInterface or a NodeTemplate, %s given.', (is_object($nodeOrTemplate) ? get_class($nodeOrTemplate) : gettype($nodeOrTemplate))), 1462958554616);
-        }
-        $nodeChanged = false;
-        foreach ($data as $propertyName => $propertyValue) {
-            if (substr($propertyName, 0, 1) === '_') {
-                continue;
-            }
-            if ($nodeOrTemplate->getProperty($propertyName) != $propertyValue) {
-                $nodeOrTemplate->setProperty($propertyName, $propertyValue);
-                $nodeChanged = true;
-            }
-        }
-        return $nodeChanged;
+        return $this->nodePropertyMapper->map($data, $nodeOrTemplate, $this->currentEvent);
     }
 
     /**
@@ -468,12 +535,7 @@ abstract class AbstractImporter implements ImporterInterface
      */
     protected function registerNodeProcessing(NodeInterface $node, $externalIdentifier, $externalRelativeUri = null)
     {
-        if (defined('static::IMPORTER_CLASSNAME') === false) {
-            $importerClassName = get_called_class();
-        } else {
-            $importerClassName = static::IMPORTER_CLASSNAME;
-        }
-        $this->processedNodeService->set($importerClassName, $externalIdentifier, $externalRelativeUri, $node->getIdentifier(), $node->getPath());
+        $this->processedNodeService->set(get_called_class(), $externalIdentifier, $externalRelativeUri, $node->getIdentifier(), $node->getPath(), $this->presetPath());
     }
 
     /**
@@ -482,7 +544,15 @@ abstract class AbstractImporter implements ImporterInterface
      */
     protected function getNodeProcessing($externalIdentifier)
     {
-        return $this->processedNodeService->get(get_called_class(), $externalIdentifier);
+        return $this->processedNodeService->get(get_called_class(), $externalIdentifier, $this->presetPath());
+    }
+
+    /**
+     * @return string
+     */
+    protected function presetPath()
+    {
+        return $this->presetName . '/' . $this->partName;
     }
 
     /**
@@ -551,27 +621,48 @@ abstract class AbstractImporter implements ImporterInterface
      *
      * The storage node is either created or just retrieved and finally stored in $this->storageNode.
      *
-     * @param string $nodePath Absolute or relative (to the site node) node path of the storage node
+     * @param string $nodePathOrIdentifier A nodeIdentifier (prefixed with #) or an absolute or relative (to the site node) node path of the storage node
      * @param string $title Title for the storage node document
      * @return void
-     * @throws \Neos\ContentRepository\Exception\NodeTypeNotFoundException
+     * @throws Exception
      */
-    protected function initializeStorageNode($nodePath, $title)
+    protected function initializeStorageNode($nodePathOrIdentifier, $title)
     {
-        preg_match('|([a-z0-9\-]+/)*([a-z0-9\-]+)$|', $nodePath, $matches);
-        $nodeName = $matches[2];
-        $uriPathSegment = Slug::create($title)->getValue();
+        if (is_string($nodePathOrIdentifier) && $nodePathOrIdentifier[0] === '#') {
+            $this->storageNode = $this->rootNode->getContext()->getNodeByIdentifier(\substr($nodePathOrIdentifier, 1));
+        } else {
+            $this->storageNode = $this->getSiteNode()->getNode($nodePathOrIdentifier);
 
-        $storageNodeTemplate = new NodeTemplate();
-        $storageNodeTemplate->setNodeType($this->nodeTypeManager->getNodeType($this->storageNodeTypeName));
+            preg_match('|([a-z0-9\-]+/)*([a-z0-9\-]+)$|', $nodePathOrIdentifier, $matches);
+            $nodeName = $matches[2];
+            $uriPathSegment = Slug::create($title)->getValue();
 
-        $this->storageNode = $this->siteNode->getNode($nodePath);
-        if ($this->storageNode === null) {
-            $storageNodeTemplate->setProperty('title', $title);
-            $storageNodeTemplate->setProperty('uriPathSegment', $uriPathSegment);
-            $storageNodeTemplate->setName($nodeName);
-            $this->storageNode = $this->siteNode->createNodeFromTemplate($storageNodeTemplate);
+            $storageNodeTemplate = new NodeTemplate();
+            $storageNodeTemplate->setNodeType($this->nodeTypeManager->getNodeType($this->storageNodeTypeName));
+
+            if ($this->storageNode === null) {
+                $storageNodeTemplate->setProperty('title', $title);
+                $storageNodeTemplate->setProperty('uriPathSegment', $uriPathSegment);
+                $storageNodeTemplate->setName($nodeName);
+                $this->storageNode = $this->getSiteNode()->createNodeFromTemplate($storageNodeTemplate);
+            }
         }
+
+        if (!$this->storageNode instanceof NodeInterface) {
+            throw new Exception('Storage node can not be empty', 1500558744);
+        }
+    }
+
+    /**
+     * @return NodeInterface
+     * @throws SiteNodeEmptyException
+     */
+    protected function getSiteNode()
+    {
+        if (!$this->siteNode instanceof NodeInterface) {
+            throw new SiteNodeEmptyException(get_class($this) . ': siteNodePath is not defined. Please make sure to set the target siteNodePath in your importer options.');
+        }
+        return $this->siteNode;
     }
 
 

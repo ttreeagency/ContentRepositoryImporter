@@ -1,13 +1,11 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Command;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\Domain\Model\PresetPartDefinition;
+use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Ttree\ContentRepositoryImporter\Domain\Repository\EventRepository;
+use Ttree\ContentRepositoryImporter\Domain\Repository\RecordMappingRepository;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Exception\ImportAlreadyExecutedException;
 use Ttree\ContentRepositoryImporter\Importer\AbstractImporter;
@@ -19,6 +17,7 @@ use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Utility\Arrays;
 use Neos\Neos\EventLog\Domain\Service\EventEmittingService;
+use Ttree\ContentRepositoryImporter\Service\Vault;
 
 /**
  * Import Command Controller
@@ -38,6 +37,12 @@ class ImportCommandController extends CommandController
      * @var EventRepository
      */
     protected $eventLogRepository;
+
+    /**
+     * @Flow\Inject
+     * @var RecordMappingRepository
+     */
+    protected $recordMapperRepository;
 
     /**
      * @Flow\InjectConfiguration(package="Neos.Flow")
@@ -93,6 +98,55 @@ class ImportCommandController extends CommandController
     }
 
     /**
+     * Reset the mapping between external identifier and local nodes
+     *
+     * @param string $preset
+     * @param string $parts
+     */
+    public function initCommand($preset, $parts = null)
+    {
+        $parts = Arrays::trimExplode(',', $parts);
+        $presetSettings = $this->loadPreset($preset);
+        array_walk($presetSettings['parts'], function ($partSetting, $partName) use ($preset, $parts) {
+            $this->outputLine();
+            $this->outputPartTitle($partSetting, $partName);
+
+            if ($parts !== array() && !in_array($partName, $parts)) {
+                $this->outputLine('<error>~</error> Skipped');
+                return;
+            }
+
+            if (!isset($partSetting['importerClassName'])) {
+                $this->outputLine('<error>Missing importerClassName in the current preset part (%s/%s), check your settings</error>', [$preset, $partName]);
+                return;
+            }
+
+            $identifier = $partSetting['importerClassName'] . '@' . $preset . '/' . $partName;
+            /** @var RecordMapping $recordMapper */
+            foreach ($this->recordMapperRepository->findByImporterClassName($identifier) as $recordMapper) {
+                $this->recordMapperRepository->remove($recordMapper);
+            }
+        });
+        $vault = new Vault($preset);
+        $vault->flush();
+    }
+
+    /**
+     * Show the different pars of the preset
+     *
+     * @param string $preset
+     * @param string $parts
+     */
+    public function showCommand($preset)
+    {
+        $presetSettings = $this->loadPreset($preset);
+        array_walk($presetSettings['parts'], function ($partSetting, $partName) use ($preset) {
+            $this->outputLine();
+            $this->outputPartTitle($partSetting, $partName);
+        });
+    }
+
+    /**
      * Run batch import
      *
      * This executes a batch import as configured in the settings for the specified preset. Optionally the "parts" can
@@ -113,14 +167,14 @@ class ImportCommandController extends CommandController
      * @param string $preset Name of the preset which holds the configuration for the import
      * @param string $parts Optional comma separated names of parts. If no parts are specified, all parts will be imported.
      * @param integer $batchSize Number of records to import at a time. If not specified, the batch size defined in the preset will be used.
-     * @param string $externalImportIdentifier External identifier which is used for checking if an import of the same data has already been executed earlier.
+     * @param string $identifier External identifier which is used for checking if an import of the same data has already been executed earlier.
      * @param boolean $force If set, an import will even be executed if it ran earlier with the same external import identifier.
      * @return void
      */
-    public function batchCommand($preset, $parts = null, $batchSize = null, $externalImportIdentifier = null, $force = false)
+    public function batchCommand($preset, $parts = null, $batchSize = null, $identifier = null, $force = false)
     {
         try {
-            $this->importService->start($externalImportIdentifier, $force);
+            $this->importService->start($identifier, $force);
         } catch (ImportAlreadyExecutedException $e) {
             $this->outputLine($e->getMessage());
             $this->outputLine('Import skipped. You can force running this import again by specifying --force.');
@@ -130,21 +184,15 @@ class ImportCommandController extends CommandController
         $this->startTime = microtime(true);
         $parts = Arrays::trimExplode(',', $parts);
 
-        $this->outputLine('Start import ...');
-        $presetSettings = Arrays::getValueByPath($this->settings, array('presets', $preset));
-        if (!is_array($presetSettings)) {
-            $this->outputLine(sprintf('Preset "%s" not found ...', $preset));
-            $this->quit(1);
-        }
+        $identifier = $this->importService->getCurrentImportIdentifier();
+        $this->outputLine('Start import with identifier <b>%s</b>', [$identifier]);
 
-        $this->checkForPartsSettingsOrQuit($presetSettings, $preset);
-
-
-        array_walk($presetSettings['parts'], function ($partSetting, $partName) use ($preset, $parts, $batchSize) {
+        $presetSettings = $this->loadPreset($preset);
+        array_walk($presetSettings['parts'], function ($partSetting, $partName) use ($preset, $parts, $batchSize, $identifier) {
             $this->elapsedTime = 0;
             $this->batchCounter = 0;
             $this->outputLine();
-            $this->outputFormatted(sprintf('<b>%s</b>', $partSetting['label']));
+            $this->outputPartTitle($partSetting, $partName);
 
             $partSetting['__currentPresetName'] = $preset;
             $partSetting['__currentPartName'] = $partName;
@@ -152,9 +200,9 @@ class ImportCommandController extends CommandController
                 $partSetting['batchSize'] = $batchSize;
             }
 
-            $partSetting = new PresetPartDefinition($partSetting, $this->importService->getCurrentImportIdentifier());
+            $partSetting = new PresetPartDefinition($partSetting, $identifier);
             if ($parts !== array() && !in_array($partName, $parts)) {
-                $this->outputLine('Skipped');
+                $this->outputLine('<error>~</error> Skipped');
                 return;
             }
 
@@ -173,12 +221,29 @@ class ImportCommandController extends CommandController
         $import = $this->importService->getLastImport();
 
         $this->outputLine();
-        $this->outputLine('Import finished.');
-        $this->outputLine(sprintf('  Started   %s', $import->getStartTime()->format(DATE_RFC2822)));
-        $this->outputLine(sprintf('  Finished  %s', $import->getEndTime()->format(DATE_RFC2822)));
-        $this->outputLine(sprintf('  Runtime   %d seconds', $import->getElapsedTime()));
+        $this->outputLine('<b>Import finished</b>');
+        $this->outputLine(sprintf('<info>-</info> Started   %s', $import->getStartTime()->format(DATE_RFC2822)));
+        $this->outputLine(sprintf('<info>-</info> Finished  %s', $import->getEndTime()->format(DATE_RFC2822)));
+        $this->outputLine(sprintf('<info>-</info> Runtime   %d seconds', $import->getElapsedTime()));
         $this->outputLine();
         $this->outputLine('See log for more details and possible errors.');
+    }
+
+    /**
+     * @param string $preset
+     * @return array
+     */
+    protected function loadPreset($preset)
+    {
+        $presetSettings = Arrays::getValueByPath($this->settings, ['presets', $preset]);
+        if (!is_array($presetSettings)) {
+            $this->outputLine(sprintf('Preset "%s" not found ...', $preset));
+            $this->quit(1);
+        }
+
+        $this->checkForPartsSettingsOrQuit($presetSettings, $preset);
+
+        return $presetSettings;
     }
 
     /**
@@ -196,25 +261,46 @@ class ImportCommandController extends CommandController
             $startTime = microtime(true);
 
             ++$this->batchCounter;
-            ob_start();
-            $status = Scripts::executeCommand('ttree.contentrepositoryimporter:import:executebatch', $this->flowSettings, true, $partSetting->getCommandArguments());
+            ob_start(NULL, 1<<20);
+            $commandIdentifier = 'ttree.contentrepositoryimporter:import:executebatch';
+            $status = Scripts::executeCommand($commandIdentifier, $this->flowSettings, true, $partSetting->getCommandArguments());
             if ($status !== true) {
-                throw new Exception('Sub command failed', 1426767159);
+                throw new Exception(\vsprintf('Command: %s with parameters: %s', [$commandIdentifier, \json_encode($partSetting->getCommandArguments())]), 1426767159);
             }
-            $count = (integer)ob_get_clean();
-            if ($count < 1) {
-                return 0;
+            $output = explode(\PHP_EOL, ob_get_clean());
+            if (count($output) > 1) {
+                $this->outputLine('<error>+</error> <b>Command "%s"</b>', [$commandIdentifier]);
+                $this->outputLine('<error>+</error> <comment>  with parameters:</comment>');
+                foreach ($partSetting->getCommandArguments() as $argumentName => $argumentValue) {
+                    $this->outputLine('<error>+</error>     %s: %s', [$argumentName, $argumentValue]);
+                }
+                foreach ($output as $line) {
+                    $line = trim($line);
+                    if ($line === '') {
+                        continue;
+                    }
+                    $this->outputLine('<error>+</error> %s', [$line]);
+                }
             }
+            $count = (int)\array_pop($output);
+            $count = $count < 1 ? 0 : $count;
 
             $elapsedTime = (microtime(true) - $startTime) * 1000;
             $this->elapsedTime += $elapsedTime;
-            $this->outputLine('  #%d %d records in %dms, %d ms per record, %d ms per batch (avg)', [$partSetting->getCurrentBatch(), $count, $elapsedTime, $elapsedTime / $count, $this->elapsedTime / $this->batchCounter]);
+            $this->outputLine('<info>+</info> #%d %d records in %dms, %d ms per record, %d ms per batch (avg)', [
+                $partSetting->getCurrentBatch(),
+                $count,
+                $elapsedTime,
+                ($count > 0 ? $elapsedTime / $count : $elapsedTime),
+                ($this->batchCounter > 0 ? $this->elapsedTime / $this->batchCounter : $this->elapsedTime)
+            ]);
             $this->importService->addEvent(sprintf('%s:Ended', $partSetting->getEventType()), null, $partSetting->getCommandArguments());
             $this->importService->persistEntities();
             return $count;
         } catch (\Exception $exception) {
             $this->logger->logException($exception);
-            $this->outputLine("Error, please check your logs ...", [$partSetting->getLabel()]);
+            $this->outputLine('Error in parts "%s", please check your logs for more details', [$partSetting->getLabel()]);
+            $this->outputLine('<error>%s</error>', [$exception->getMessage()]);
             $this->importService->addEvent(sprintf('%s:Failed', $partSetting->getEventType()), null, $partSetting->getCommandArguments());
             $this->quit(1);
         }
@@ -239,7 +325,11 @@ class ImportCommandController extends CommandController
     public function executeBatchCommand($presetName, $partName, $dataProviderClassName, $importerClassName, $currentImportIdentifier, $offset = null, $batchSize = null)
     {
         try {
+            $vault = new Vault($presetName);
+
             $dataProviderOptions = Arrays::getValueByPath($this->settings, implode('.', ['presets', $presetName, 'parts', $partName, 'dataProviderOptions']));
+            $dataProviderOptions['__presetName'] = $presetName;
+            $dataProviderOptions['__partName'] = $partName;
 
             /** @var DataProviderInterface $dataProvider */
             $dataProvider = $dataProviderClassName::create(is_array($dataProviderOptions) ? $dataProviderOptions : [], $offset, $batchSize);
@@ -247,7 +337,10 @@ class ImportCommandController extends CommandController
             $importerOptions = Arrays::getValueByPath($this->settings, ['presets', $presetName, 'parts', $partName, 'importerOptions']);
 
             /** @var AbstractImporter $importer */
-            $importer = $this->objectManager->get($importerClassName, is_array($importerOptions) ? $importerOptions : [], $currentImportIdentifier);
+            $importerOptions = is_array($importerOptions) ? $importerOptions : [];
+            $importerOptions['__presetName'] = $presetName;
+            $importerOptions['__partName'] = $partName;
+            $importer = $this->objectManager->get($importerClassName, $importerOptions, $currentImportIdentifier, $vault);
             $importer->getImportService()->addEventMessage(sprintf('%s:Batch:Started', $importerClassName), sprintf('%s batch started (%s)', $importerClassName, $dataProviderClassName));
             $importer->initialize($dataProvider);
             $importer->process();
@@ -255,7 +348,8 @@ class ImportCommandController extends CommandController
             $this->output($importer->getProcessedRecords());
         } catch (\Exception $exception) {
             $this->logger->logException($exception);
-            $this->quit(1);
+            $this->outputLine('<error>%s</error>', [$exception->getMessage()]);
+            $this->sendAndExit(1);
         }
     }
 
@@ -269,6 +363,15 @@ class ImportCommandController extends CommandController
     public function flushEventLogCommand()
     {
         $this->eventLogRepository->removeAll();
+    }
+
+    /**
+     * @param array $partSetting
+     * @param string $partName
+     */
+    protected function outputPartTitle(array $partSetting, $partName)
+    {
+        $this->outputFormatted(sprintf('<info>+</info> <b>%s</b> (%s)', $partSetting['label'], $partName));
     }
 
     /**

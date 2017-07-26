@@ -1,10 +1,6 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Domain\Service;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
 use Doctrine\ORM\Mapping as ORM;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;
 use Ttree\ContentRepositoryImporter\Domain\Model\Import;
@@ -64,29 +60,29 @@ class ImportService
     /**
      * Start a new Import
      *
-     * @param string $externalImportIdentifier
+     * @param string $identifier
      * @param boolean $force
      * @throws Exception
      * @throws \Neos\Flow\Persistence\Exception\IllegalObjectTypeException
      */
-    public function start($externalImportIdentifier = null, $force = false)
+    public function start($identifier = null, $force = false)
     {
         if ($this->currentImport instanceof Import) {
             throw new Exception('Unable to start a new import, please stop the current import first', 1426638560);
         }
 
-        if ($externalImportIdentifier !== null) {
-            $existingImport = $this->importRepository->findOneByExternalImportIdentifier($externalImportIdentifier);
+        if ($identifier !== null) {
+            $existingImport = $this->importRepository->findOneByExternalImportIdentifier($identifier);
             if (!$force  && $existingImport instanceof Import) {
-                throw new ImportAlreadyExecutedException(sprintf('An import referring to the external identifier "%s" has already been executed on %s.', $externalImportIdentifier, $existingImport->getStartTime()->format('d.m.Y h:m:s')), 1464028408403);
+                throw new ImportAlreadyExecutedException(sprintf('An import referring to the external identifier "%s" has already been executed on %s.', $identifier, $existingImport->getStartTime()->format('d.m.Y h:m:s')), 1464028408403);
             }
         }
 
         $this->currentImport = new Import();
-        $this->currentImport->setExternalImportIdentifier($externalImportIdentifier);
+        $this->currentImport->setExternalImportIdentifier($identifier);
 
         if ($force && isset($existingImport)) {
-            $this->addEventMessage(sprintf('ImportService:start', 'Forcing re-import of data set with external identifier "%s".', $externalImportIdentifier), LOG_NOTICE);
+            $this->addEventMessage(sprintf('ImportService:start', 'Forcing re-import of data set with external identifier "%s".', $identifier), LOG_NOTICE);
         }
 
         $this->importRepository->add($this->currentImport);

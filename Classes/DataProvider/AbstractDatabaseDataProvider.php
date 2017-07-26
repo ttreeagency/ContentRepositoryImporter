@@ -1,10 +1,6 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\DataProvider;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;

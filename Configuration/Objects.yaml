@@ -1,29 +1,9 @@
-Ttree\ContentRepositoryImporter\Service\ProcessedNodeService:
+Ttree\ContentRepositoryImporter\Service\Vault:
   properties:
-    cache:
+    storage:
       object:
         factoryObjectName: Neos\Flow\Cache\CacheManager
         factoryMethodName: getCache
         arguments:
           1:
-            value: Ttree_ContentRepositoryImporter_Processed_Node
-
-Ttree\ContentRepositoryImporter\Command\ImportCommandController:
-  properties:
-    cache:
-      object:
-        factoryObjectName: Neos\Flow\Cache\CacheManager
-        factoryMethodName: getCache
-        arguments:
-          1:
-            value: Ttree_ContentRepositoryImporter_Processed_Node
-
-Ttree\ContentRepositoryImporter\DataType\ExternalResource:
-  properties:
-    downloadCache:
-      object:
-        factoryObjectName: Neos\Flow\Cache\CacheManager
-        factoryMethodName: getCache
-        arguments:
-          1:
-            value: Ttree_ContentRepositoryImporter_External_Resource
+            value: Ttree_ContentRepositoryImporter_Vault

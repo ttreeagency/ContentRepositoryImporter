@@ -1,10 +1,6 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Domain\Model;
 
-/*
- * This script belongs to the Neos Flow package "Ttree.ContentRepositoryImporter".
- */
-
 use Ttree\ContentRepositoryImporter\Exception\InvalidArgumentException;
 use Neos\Flow\Annotations as Flow;
 
@@ -138,6 +134,8 @@ class PresetPartDefinition
         ];
         if ($this->batchSize) {
             $arguments['batchSize'] = (integer)$this->batchSize;
+        } else {
+            $arguments['batchSize'] = 100000;
         }
         if ($this->offset) {
             $arguments['offset'] = (integer)$this->offset;

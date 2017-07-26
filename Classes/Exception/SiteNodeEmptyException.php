@@ -1,11 +1,12 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Exception;
+
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
 
 /**
- * Import Already Executed Exception
+ * Site Node Empty Exception
  */
-class ImportAlreadyExecutedException extends Exception
+class SiteNodeEmptyException extends Exception
 {
 }
