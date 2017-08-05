@@ -424,7 +424,7 @@ abstract class AbstractImporter implements ImporterInterface
             $this->registerNodeProcessing($node, $externalIdentifier);
         }
 
-        $this->dimensionsImporter->process($node, $data, $this->currentEvent);
+        $this->dimensionsImporter->process($node, $this->getPropertiesFromDataProviderPayload($data), $this->currentEvent);
 
         return $node;
     }
