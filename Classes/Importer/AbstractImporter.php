@@ -1,4 +1,5 @@
 <?php
+
 namespace Ttree\ContentRepositoryImporter\Importer;
 
 use Neos\Cache\Frontend\VariableFrontend;
@@ -29,6 +30,12 @@ use Ttree\ContentRepositoryImporter\Service\Vault;
  */
 abstract class AbstractImporter implements ImporterInterface
 {
+    /**
+     * The unique identifier of the storage node
+     * @var string
+     */
+    protected $storageNodeIdentifier;
+
     /**
      * Node path (can be absolute or relative to the current site node) where the "storage node" (ie. the parent
      * document node for nodes imported by the concrete importer) will be located. You can also use the identifier of the node.
@@ -312,12 +319,26 @@ abstract class AbstractImporter implements ImporterInterface
         $context = $this->contextFactory->create($contextConfiguration);
         $this->rootNode = $context->getRootNode();
 
-        $this->applyOption($this->storageNodeNodePath, 'storageNodeNodePath');
         $this->applyOption($this->nodeTypeName, 'nodeTypeName');
+        $this->applyOption($this->storageNodeIdentifier, 'storageNodeIdentifier');
+        $this->applyOption($this->storageNodeNodePath, 'storageNodeNodePath');
 
-        if (isset($this->options['siteNodePath']) || isset($this->options['siteNodeIdentifier'])) {
-            $siteNodePath = isset($this->options['siteNodePath']) ? trim($this->options['siteNodePath']) : null;
-            $siteNodeIdentifier = isset($this->options['siteNodeIdentifier']) ? trim($this->options['siteNodeIdentifier']) : null;
+        $siteNodePath = isset($this->options['siteNodePath']) ? trim($this->options['siteNodePath']) : null;
+        $siteNodeIdentifier = isset($this->options['siteNodeIdentifier']) ? trim($this->options['siteNodeIdentifier']) : null;
+
+        if (isset($this->storageNodeIdentifier)) {
+            $this->storageNode = $context->getNodeByIdentifier($this->storageNodeIdentifier);
+            if (!($this->storageNode instanceof NodeInterface)) {
+                throw new Exception(sprintf('The storage node with identifier "%s" was not found', $this->storageNodeIdentifier));
+            }
+
+            $pathParts = explode('/', ltrim($this->storageNode->getPath(), '/'));
+            $siteNodePath = '/sites/' . $pathParts[1];
+
+            $this->storageNodeNodePath = $this->storageNode->getPath();
+        }
+
+        if (isset($siteNodePath) || isset($siteNodeIdentifier)) {
             $this->siteNode = $this->rootNode->getNode($siteNodePath) ?: $context->getNodeByIdentifier($siteNodeIdentifier);
             if ($this->siteNode === null) {
                 throw new Exception(sprintf('Site node not found (%s)', $siteNodePath ?: $siteNodeIdentifier), 1425077201);
@@ -372,6 +393,7 @@ abstract class AbstractImporter implements ImporterInterface
         });
         $this->postProcessing($records);
     }
+
 
     public function withStorageNode(NodeInterface $storageNode, \Closure $closure)
     {
@@ -582,7 +604,7 @@ abstract class AbstractImporter implements ImporterInterface
         if ($externalIdentifier === null) {
             throw new \Exception('Could not determine external identifier from record data. See ' . self::class . ' for more information.', 1462968317292);
         }
-        return (string)$externalIdentifier;
+        return (string) $externalIdentifier;
     }
 
     /**
@@ -612,7 +634,7 @@ abstract class AbstractImporter implements ImporterInterface
         if ($label === null) {
             throw new \Exception('Could not determine label from record data (key: ' . $this->labelDataKey . '). See ' . self::class . ' for more information.', 1462968958372);
         }
-        return (string)$label;
+        return (string) $label;
     }
 
 
