@@ -53,7 +53,7 @@ class CsvDataProvider extends AbstractDataProvider
         }
 
         if (isset($this->options['csvEnclosure'])) {
-            $this->csvDelimiter = $this->options['csvEnclosure'];
+            $this->csvEnclosure = $this->options['csvEnclosure'];
         }
 
         $this->logger->log(sprintf('%s will read from "%s", using %s as delimiter and %s as enclosure character.', get_class($this), $this->csvFilePath, $this->csvDelimiter, $this->csvEnclosure), LOG_DEBUG);
