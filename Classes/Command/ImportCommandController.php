@@ -171,7 +171,7 @@ class ImportCommandController extends CommandController
      * @param boolean $force If set, an import will even be executed if it ran earlier with the same external import identifier.
      * @return void
      */
-    public function batchCommand($preset, $parts = null, $batchSize = null, $identifier = null, $force = false)
+    public function batchCommand($preset, $parts = '', $batchSize = null, $identifier = null, $force = false)
     {
         try {
             $this->importService->start($identifier, $force);
