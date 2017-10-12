@@ -358,18 +358,19 @@ abstract class AbstractImporter implements ImporterInterface
     protected function processBatch(NodeTemplate $nodeTemplate = null)
     {
         $records = $this->dataProvider->fetch();
-        if (!is_array($records)) {
+        if (!\is_iterable($records)) {
             throw new Exception(sprintf('Expected records as an array while calling %s->fetch(), but returned %s instead.', get_class($this->dataProvider), gettype($records)), 1462960769826);
         }
         $records = $this->preProcessing($records);
 
-        array_walk($records, function ($data) use ($nodeTemplate) {
+        foreach ($records as $data) {
             if (!\is_array($data)) {
                 $data = $this->propertyMapper->convert($data, 'array');
             }
             $this->processRecord($nodeTemplate, $data);
             ++$this->processedRecords;
-        });
+        }
+
         $this->postProcessing($records);
     }
 
@@ -480,7 +481,7 @@ abstract class AbstractImporter implements ImporterInterface
      * @param array $records
      * @return array
      */
-    protected function preProcessing(array $records)
+    protected function preProcessing($records)
     {
         return $records;
     }
@@ -490,7 +491,7 @@ abstract class AbstractImporter implements ImporterInterface
      *
      * @param array $records
      */
-    protected function postProcessing(array $records)
+    protected function postProcessing($records)
     {
     }
 
