@@ -478,7 +478,7 @@ abstract class AbstractImporter implements ImporterInterface
     /**
      * Preprocess RAW data
      *
-     * @param array $records
+     * @param array|iterable $records
      * @return array
      */
     protected function preProcessing($records)
@@ -489,7 +489,7 @@ abstract class AbstractImporter implements ImporterInterface
     /**
      * Postprocessing
      *
-     * @param array $records
+     * @param array|iterable $records
      */
     protected function postProcessing($records)
     {
