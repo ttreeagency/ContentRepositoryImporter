@@ -327,7 +327,7 @@ class ImportCommandController extends CommandController
         try {
             $vault = new Vault($presetName);
 
-            $dataProviderOptions = Arrays::getValueByPath($this->settings, implode('.', ['presets', $presetName, 'parts', $partName, 'dataProviderOptions']));
+            $dataProviderOptions = Arrays::getValueByPath($this->settings, ['presets', $presetName, 'parts', $partName, 'dataProviderOptions']);
             $dataProviderOptions['__presetName'] = $presetName;
             $dataProviderOptions['__partName'] = $partName;
 
