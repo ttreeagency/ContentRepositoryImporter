@@ -103,7 +103,7 @@ class ImportCommandController extends CommandController
      * @param string $preset
      * @param string $parts
      */
-    public function initCommand($preset, $parts = null)
+    public function initCommand($preset, $parts = '')
     {
         $parts = Arrays::trimExplode(',', $parts);
         $presetSettings = $this->loadPreset($preset);
