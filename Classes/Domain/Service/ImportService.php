@@ -86,6 +86,7 @@ class ImportService
         }
 
         $this->importRepository->add($this->currentImport);
+        $this->persistenceManager->persistAll();
     }
 
     /**
