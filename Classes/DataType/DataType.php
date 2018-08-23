@@ -35,7 +35,10 @@ abstract class DataType implements DataTypeInterface
      */
     public function initializeObject()
     {
-        $this->options = $this->configurationManager->getConfiguration(ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, [ 'Ttree', 'ContentRepositoryImporter', 'dataTypeOptions', get_called_class()]) ?: array();
+        $this->options = $this->configurationManager->getConfiguration(
+            ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 
+            'Ttree.ContentRepositoryImporter.dataTypeOptions.' . get_called_class()
+        ) ?: [];
     }
 
     /**
