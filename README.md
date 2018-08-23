@@ -82,15 +82,16 @@ If your data provider follow this convention, the importer can automatically cre
 The ```@en``` is a preset name, you must configuration the presets on your ```Settings.yaml```:
 
 ```
-Hsso:
-  Importer:
-    dimensionPresets:
-      fr:
-        language: ['fr', 'en', 'de']
-      en:
-        language: ['en', 'de']
-      de:
-        language: ['de']
+Ttree:
+  ContentRepositoryImporter:
+    dimensionsImporter:
+      presets:
+        fr:
+	  language: ['fr', 'en', 'de']
+        en:
+	  language: ['en', 'de']
+        de:
+	  language: ['de']
 ```
 
 ### Share data between preset parts
