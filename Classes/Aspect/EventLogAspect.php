@@ -1,11 +1,12 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Aspect;
 
+use Exception;
+use Neos\Flow\Log\ThrowableStorageInterface;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Importer\ImporterInterface;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
-use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Utility\Arrays;
 use Neos\ContentRepository\Domain\Repository\NodeDataRepository;
@@ -37,15 +38,16 @@ class EventLogAspect
 
     /**
      * @Flow\Inject
-     * @var SystemLoggerInterface
+     * @var ThrowableStorageInterface
      */
-    protected $logger;
+    protected $throwableStorage;
 
     /**
      * Add record started event
      *
      * @Flow\Before("within(Ttree\ContentRepositoryImporter\Importer\ImporterInterface) && method(.*->processRecord())")
      * @param JoinPointInterface $joinPoint
+     * @throws \Neos\Flow\Exception
      */
     public function addRecordStartedEvent(JoinPointInterface $joinPoint)
     {
@@ -74,8 +76,8 @@ class EventLogAspect
         try {
             $this->importService->persistEntities();
             $this->nodeDataRepository->persistEntities();
-        } catch (\Exception $exception) {
-            $this->logger->logException($exception);
+        } catch (Exception $exception) {
+            $this->throwableStorage->logThrowable($exception);
         }
     }
 

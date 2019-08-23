@@ -3,6 +3,7 @@ namespace Ttree\ContentRepositoryImporter\Importer;
 
 use Neos\Cache\Frontend\VariableFrontend;
 use Neos\Flow\Property\PropertyMapper;
+use Psr\Log\LoggerInterface;
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\DataType\Slug;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;
@@ -14,7 +15,6 @@ use Ttree\ContentRepositoryImporter\Service\NodePropertyMapper;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
-use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Utility\Arrays;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\ContentRepository\Domain\Model\NodeTemplate;
@@ -111,7 +111,7 @@ abstract class AbstractImporter implements ImporterInterface
 
     /**
      * @Flow\Inject
-     * @var SystemLoggerInterface
+     * @var LoggerInterface
      */
     protected $logger;
 
@@ -558,6 +558,9 @@ abstract class AbstractImporter implements ImporterInterface
 
     /**
      * Create an entry in the event log
+     * @param $message
+     * @param int $severity
+     * @throws Exception
      */
     protected function log($message, $severity = LOG_INFO)
     {

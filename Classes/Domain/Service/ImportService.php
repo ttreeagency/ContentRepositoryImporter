@@ -2,6 +2,7 @@
 namespace Ttree\ContentRepositoryImporter\Domain\Service;
 
 use Doctrine\ORM\Mapping as ORM;
+use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;
 use Ttree\ContentRepositoryImporter\Domain\Model\Import;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
@@ -63,7 +64,7 @@ class ImportService
      * @param string $identifier
      * @param boolean $force
      * @throws Exception
-     * @throws \Neos\Flow\Persistence\Exception\IllegalObjectTypeException
+     * @throws IllegalObjectTypeException
      */
     public function start($identifier = null, $force = false)
     {
@@ -109,6 +110,8 @@ class ImportService
      * @param string $externalRelativeUri
      * @param string $nodeIdentifier
      * @param string $nodePath
+     * @throws Exception
+     * @throws IllegalObjectTypeException
      */
     public function addOrUpdateRecordMapping($importerClassName, $externalIdentifier, $externalRelativeUri, $nodeIdentifier, $nodePath)
     {

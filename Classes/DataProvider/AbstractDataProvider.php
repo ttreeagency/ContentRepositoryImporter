@@ -2,9 +2,9 @@
 namespace Ttree\ContentRepositoryImporter\DataProvider;
 
 use Neos\Cache\Frontend\VariableFrontend;
+use Psr\Log\LoggerInterface;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Log\SystemLoggerInterface;
 use Ttree\ContentRepositoryImporter\Service\Vault;
 
 /**
@@ -16,7 +16,7 @@ abstract class AbstractDataProvider implements DataProviderInterface
 {
     /**
      * @Flow\Inject
-     * @var SystemLoggerInterface
+     * @var LoggerInterface
      * @api
      */
     protected $logger;
@@ -90,7 +90,7 @@ abstract class AbstractDataProvider implements DataProviderInterface
      * @param integer $limit Maximum number of records which should be imported
      * @return DataProviderInterface
      */
-    public static function create(array $options = [], $offset = null, $limit = null)
+    public static function create(array $options = [], $offset = null, $limit = null): DataProviderInterface
     {
         $dataProvider = new static($options, new Vault($options['__presetName']));
         $dataProvider->setOffset($offset);
@@ -102,11 +102,11 @@ abstract class AbstractDataProvider implements DataProviderInterface
     /**
      * Set the offset (record number) to start importing at
      *
-     * @param integer $offset
+     * @param int $offset
      */
-    public function setOffset($offset)
+    public function setOffset(int $offset): void
     {
-        $this->offset = (integer)$offset;
+        $this->offset = (int)$offset;
     }
 
     /**
