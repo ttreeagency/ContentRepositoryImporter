@@ -1,7 +1,7 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Domain\Repository;
 
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Persistence\Repository;
 
@@ -12,7 +12,7 @@ class ImportRepository extends Repository
 {
     /**
      * @Flow\Inject
-     * @var ObjectManager
+     * @var EntityManagerInterface
      */
     protected $entityManager;
 
