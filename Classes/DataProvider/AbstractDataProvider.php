@@ -104,7 +104,7 @@ abstract class AbstractDataProvider implements DataProviderInterface
      *
      * @param int $offset
      */
-    public function setOffset(int $offset): void
+    public function setOffset($offset)
     {
         $this->offset = (int)$offset;
     }
