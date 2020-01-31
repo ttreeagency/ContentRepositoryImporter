@@ -12,6 +12,7 @@ use Ttree\ContentRepositoryImporter\Exception\ImportAlreadyExecutedException;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
+use Psr\Log\LogLevel;
 
 /**
  * @Flow\Scope("singleton")
@@ -83,7 +84,7 @@ class ImportService
         $this->currentImport->setExternalImportIdentifier($identifier);
 
         if ($force && isset($existingImport)) {
-            $this->addEventMessage(sprintf('ImportService:start', 'Forcing re-import of data set with external identifier "%s".', $identifier), LOG_NOTICE);
+            $this->addEventMessage(sprintf('ImportService:start', 'Forcing re-import of data set with external identifier "%s".', $identifier), LogLevel::NOTICE);
         }
 
         $this->importRepository->add($this->currentImport);
@@ -162,7 +163,7 @@ class ImportService
      * @return Event
      * @throws Exception
      */
-    public function addEventMessage($eventType, $message, $severity = LOG_INFO, Event $parentEvent = null)
+    public function addEventMessage($eventType, $message, $severity = LogLevel::INFO, Event $parentEvent = null)
     {
         if (!$this->currentImport instanceof Import) {
             throw new Exception('Unable to add an event, please start an import first', 1426638563);

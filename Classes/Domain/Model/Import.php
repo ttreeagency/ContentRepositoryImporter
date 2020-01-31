@@ -4,6 +4,7 @@ namespace Ttree\ContentRepositoryImporter\Domain\Model;
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
+use Psr\Log\LogLevel;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Neos\EventLog\Domain\Service\EventEmittingService;
 use Psr\Log\LoggerInterface;
@@ -83,7 +84,8 @@ class Import
     {
         if (is_array($data) && isset($data['__message'])) {
             $message = $parentEvent ? sprintf('- %s', $data['__message']) : $data['__message'];
-            $this->logger->log(isset($data['__severity']) ? (integer)$data['__severity'] : LOG_INFO, $message);
+            $severity = isset($data['__severity']) ? $data['__severity'] : LogLevel::INFO;
+            $this->logger->log($severity, $message);
         }
         $event = new Event($eventType, $data, null, $parentEvent);
         $event->setExternalIdentifier($externalIdentifier);
