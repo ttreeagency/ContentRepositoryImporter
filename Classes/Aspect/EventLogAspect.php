@@ -10,6 +10,7 @@ use Neos\Flow\Aop\JoinPointInterface;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Utility\Arrays;
 use Neos\ContentRepository\Domain\Repository\NodeDataRepository;
+use Neos\Flow\Log\Utility\LogEnvironment;
 
 /**
  * Aspect to automatically handle EventLog in Importer object
@@ -77,7 +78,8 @@ class EventLogAspect
             $this->importService->persistEntities();
             $this->nodeDataRepository->persistEntities();
         } catch (Exception $exception) {
-            $this->throwableStorage->logThrowable($exception);
+            $logMessage = $this->throwableStorage->logThrowable($exception);
+            $this->logger->error($logMessage, LogEnvironment::fromMethodName(__METHOD__));
         }
     }
 

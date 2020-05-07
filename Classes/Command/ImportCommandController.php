@@ -19,6 +19,7 @@ use Neos\Flow\Exception;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Utility\Arrays;
 use Ttree\ContentRepositoryImporter\Service\Vault;
+use Neos\Flow\Log\Utility\LogEnvironment;
 use function array_pop;
 use function json_encode;
 use function vsprintf;
@@ -304,7 +305,8 @@ class ImportCommandController extends CommandController
             $this->importService->persistEntities();
             return $count;
         } catch (\Exception $exception) {
-            $this->throwableStorage->logThrowable($exception);
+            $logMessage = $this->throwableStorage->logThrowable($exception);
+            $this->logger->error($logMessage, LogEnvironment::fromMethodName(__METHOD__));
             $this->outputLine('Error in parts "%s", please check your logs for more details', [$partSetting->getLabel()]);
             $this->outputLine('<error>%s</error>', [$exception->getMessage()]);
             $this->importService->addEvent(sprintf('%s:Failed', $partSetting->getEventType()), null, $partSetting->getCommandArguments());
@@ -353,7 +355,8 @@ class ImportCommandController extends CommandController
             $importer->getImportService()->addEventMessage(sprintf('%s:Batch:Ended', $importerClassName), sprintf('%s batch ended (%s)', $importerClassName, $dataProviderClassName));
             $this->output((string)$importer->getProcessedRecords());
         } catch (\Exception $exception) {
-            $this->throwableStorage->logThrowable($exception);
+            $logMessage = $this->throwableStorage->logThrowable($exception);
+            $this->logger->error($logMessage, LogEnvironment::fromMethodName(__METHOD__));
             $this->outputLine('<error>%s</error>', [$exception->getMessage()]);
             $this->sendAndExit(1);
         }
