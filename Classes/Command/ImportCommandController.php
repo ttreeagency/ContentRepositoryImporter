@@ -4,6 +4,7 @@ namespace Ttree\ContentRepositoryImporter\Command;
 use Neos\Flow\Cli\Exception\StopCommandException;
 use Neos\Flow\Log\ThrowableStorageInterface;
 use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
+use Psr\Log\LoggerInterface;
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\Domain\Model\PresetPartDefinition;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
@@ -88,6 +89,12 @@ class ImportCommandController extends CommandController
      * @var integer
      */
     protected $batchCounter = 0;
+
+    /**
+     * @Flow\Inject
+     * @var LoggerInterface
+     */
+    protected $logger;
 
     /**
      * @param array $settings
