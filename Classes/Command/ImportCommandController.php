@@ -277,7 +277,12 @@ class ImportCommandController extends CommandController
             ++$this->batchCounter;
             ob_start(NULL, 1<<20);
             $commandIdentifier = 'ttree.contentrepositoryimporter:import:executebatch';
-            $status = Scripts::executeCommand($commandIdentifier, $this->flowSettings, true, $partSetting->getCommandArguments());
+            $commandArguments = $partSetting->getCommandArguments();
+            $exceedingArguments = $this->request->getExceedingArguments();
+            if (!empty($exceedingArguments)) {
+                $commandArguments['exceedingArguments'] = implode(',', $exceedingArguments);
+            }
+            $status = Scripts::executeCommand($commandIdentifier, $this->flowSettings, true, $commandArguments);
             if ($status !== true) {
                 throw new Exception(vsprintf('Command: %s with parameters: %s', [$commandIdentifier, json_encode($partSetting->getCommandArguments())]), 1426767159);
             }
@@ -334,10 +339,11 @@ class ImportCommandController extends CommandController
      * @param string $currentImportIdentifier
      * @param integer $offset
      * @param integer $batchSize
+     * @param array $exceedingArguments
      * @return void
      * @Flow\Internal
      */
-    public function executeBatchCommand($presetName, $partName, $dataProviderClassName, $importerClassName, $currentImportIdentifier, $offset = null, $batchSize = null)
+    public function executeBatchCommand($presetName, $partName, $dataProviderClassName, $importerClassName, $currentImportIdentifier, $offset = null, $batchSize = null, $exceedingArguments = null)
     {
         try {
             $vault = new Vault($presetName);
@@ -347,7 +353,7 @@ class ImportCommandController extends CommandController
             $dataProviderOptions['__partName'] = $partName;
 
             /** @var DataProviderInterface $dataProvider */
-            $dataProvider = $dataProviderClassName::create(is_array($dataProviderOptions) ? $dataProviderOptions : [], $offset, $batchSize);
+            $dataProvider = $dataProviderClassName::create(is_array($dataProviderOptions) ? $dataProviderOptions : [], $offset, $batchSize, $exceedingArguments);
 
             $importerOptions = Arrays::getValueByPath($this->settings, ['presets', $presetName, 'parts', $partName, 'importerOptions']);
 

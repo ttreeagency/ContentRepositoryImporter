@@ -260,6 +260,19 @@ of records which should be imported at a time in an isolated sub-process:
 flow import:batch --preset base --batch-size 50
 ```
 
+Passing exceeding arguments to the DataProvider
+-----------------------------------------------
+
+The import process supports passing unnamed exceeding arguments to the `DataProvider`. This can be useful if you e.g. want to
+allow importing only a single record
+
+```
+flow import:batch --preset base recordIdentifier:1234
+```
+
+Exceeding arguments will be available in the `DataProvider` through `$this->getExceedingArguments()`. You need to process
+this data yourself and apply it to your fetching logic.
+
 Command based importers
 -----------------------
 
