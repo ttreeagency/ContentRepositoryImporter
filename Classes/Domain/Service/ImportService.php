@@ -46,6 +46,12 @@ class ImportService
     protected $lastImport;
 
     /**
+     * @Flow\InjectConfiguration("eventLog.recordLogEnabled")
+     * @var boolean
+     */
+    protected $recordLogEnabled;
+
+    /**
      * @param string $identifier
      * @throws Exception
      */
@@ -124,13 +130,15 @@ class ImportService
         }
 
         $this->recordMappingRepository->persistEntities();
-        $this->addEvent(sprintf('%s:Record:Ended', substr($importerClassName, strrpos($importerClassName, '\\') + 1)), $externalIdentifier, [
-            'importerClassName' => $importerClassName,
-            'externalIdentifier' => $externalIdentifier,
-            'externalRelativeUri' => $externalRelativeUri,
-            'nodeIdentifier' => $nodeIdentifier,
-            'nodePath' => $nodePath
-        ]);
+        if ($this->recordLogEnabled) {
+            $this->addEvent(sprintf('%s:Record:Ended', substr($importerClassName, strrpos($importerClassName, '\\') + 1)), $externalIdentifier, [
+                'importerClassName' => $importerClassName,
+                'externalIdentifier' => $externalIdentifier,
+                'externalRelativeUri' => $externalRelativeUri,
+                'nodeIdentifier' => $nodeIdentifier,
+                'nodePath' => $nodePath
+            ]);
+        }
     }
 
     /**

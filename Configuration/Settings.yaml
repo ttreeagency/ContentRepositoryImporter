@@ -30,6 +30,9 @@ Ttree:
         postProcessing:
           '#^(?!.*?(?:<.*ul>|<.*li>|<.*ol>|<.*h.*>))(.+)$#uim': '<p>$1</p>'
 
+    eventLog:
+      recordLogEnabled: true
+
 #    presets:
 #      'base':
 #        parts:

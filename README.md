@@ -411,6 +411,22 @@ Ttree:
 ```
 
 
+Event log
+---------
+
+If the Neos Event Log is active, the importer adds log data for the import run and for each record processed. Three rows are created for each record processed. If you have a lot of data to process and/or do frequent imports, this will cause the event log to grow quickly.
+
+In that case, you might want to disable logging on a per-record basis by the following configuration:
+
+```yaml
+Ttree:
+  ContentRepositoryImporter:
+    eventLog:
+      recordLogEnabled: false
+```
+
+The importer will still add some general events to the log, such as the start and end of the whole import run and the preset/part currently processed.
+
 Acknowledgments
 ---------------
 

@@ -194,6 +194,12 @@ abstract class AbstractImporter implements ImporterInterface
     protected $settings;
 
     /**
+     * @Flow\InjectConfiguration("eventLog.recordLogEnabled")
+     * @var boolean
+     */
+    protected $recordLogEnabled;
+
+    /**
      * @var array
      */
     protected $options = [];
@@ -564,7 +570,9 @@ abstract class AbstractImporter implements ImporterInterface
         if (!isset($this->severityLabels[$severity])) {
             throw new Exception('Invalid severity value', 1426868867);
         }
-        $this->importService->addEventMessage(sprintf('Record:Import:Log:%s', $this->severityLabels[$severity]), $message, $severity, $this->currentEvent);
+        if ($this->recordLogEnabled) {
+            $this->importService->addEventMessage(sprintf('Record:Import:Log:%s', $this->severityLabels[$severity]), $message, $severity, $this->currentEvent);
+        }
     }
 
     /**

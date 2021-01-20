@@ -42,6 +42,12 @@ class EventLogAspect
     protected $logger;
 
     /**
+     * @Flow\InjectConfiguration("eventLog.recordLogEnabled")
+     * @var boolean
+     */
+    protected $recordLogEnabled;
+
+    /**
      * Add record started event
      *
      * @Flow\Before("within(Ttree\ContentRepositoryImporter\Importer\ImporterInterface) && method(.*->processRecord())")
@@ -49,6 +55,9 @@ class EventLogAspect
      */
     public function addRecordStartedEvent(JoinPointInterface $joinPoint)
     {
+        if (!$this->recordLogEnabled) {
+            return;
+        }
         $data = $joinPoint->getMethodArgument('data');
         $externalIdentifier = Arrays::getValueByPath($data, '__externalIdentifier');
         $title = Arrays::getValueByPath($data, '__label');

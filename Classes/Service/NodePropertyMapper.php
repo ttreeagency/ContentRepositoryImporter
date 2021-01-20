@@ -20,6 +20,12 @@ class NodePropertyMapper
     protected $importService;
 
     /**
+     * @Flow\InjectConfiguration("eventLog.recordLogEnabled")
+     * @var boolean
+     */
+    protected $recordLogEnabled;
+
+    /**
      * Applies the given properties ($data) to the given Node or NodeTemplate
      *
      * @param array $data Property names and property values
@@ -27,7 +33,7 @@ class NodePropertyMapper
      * @param Event $currentEvent
      * @return bool True if an existing node has been modified, false if the new properties are the same like the old ones
      */
-    public function map(array $data, $nodeOrTemplate, Event $currentEvent)
+    public function map(array $data, $nodeOrTemplate, Event $currentEvent = null)
     {
         if (!$nodeOrTemplate instanceof NodeInterface && !$nodeOrTemplate instanceof NodeTemplate) {
             throw new \InvalidArgumentException(sprintf('$nodeOrTemplate must be either an object implementing NodeInterface or a NodeTemplate, %s given.', (is_object($nodeOrTemplate) ? get_class($nodeOrTemplate) : gettype($nodeOrTemplate))), 1462958554616);
@@ -49,7 +55,7 @@ class NodePropertyMapper
             $nodeOrTemplate->setIdentifier(trim($data['__identifier']));
         }
 
-        if ($nodeOrTemplate instanceof NodeInterface) {
+        if ($nodeOrTemplate instanceof NodeInterface && $this->recordLogEnabled) {
             $path = $nodeOrTemplate->getContextPath();
             if ($nodeChanged) {
                 $this->importService->addEventMessage('Node:Processed:Updated', sprintf('Updating existing node "%s" %s (%s)', $nodeOrTemplate->getLabel(), $path, $nodeOrTemplate->getIdentifier()), \LOG_INFO, $currentEvent);
