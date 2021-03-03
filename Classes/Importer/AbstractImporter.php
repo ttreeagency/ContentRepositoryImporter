@@ -3,6 +3,7 @@ namespace Ttree\ContentRepositoryImporter\Importer;
 
 use Neos\Cache\Frontend\VariableFrontend;
 use Neos\Flow\Property\PropertyMapper;
+use Psr\Log\LoggerInterface;
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\DataType\Slug;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;
@@ -14,7 +15,6 @@ use Ttree\ContentRepositoryImporter\Service\NodePropertyMapper;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
-use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Utility\Arrays;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\ContentRepository\Domain\Model\NodeTemplate;
@@ -22,6 +22,8 @@ use Neos\ContentRepository\Domain\Model\NodeType;
 use Neos\ContentRepository\Domain\Repository\NodeDataRepository;
 use Neos\ContentRepository\Domain\Service\ContextFactoryInterface;
 use Neos\ContentRepository\Domain\Service\NodeTypeManager;
+use Neos\Flow\Log\Psr\Logger;
+use Psr\Log\LogLevel;
 use Ttree\ContentRepositoryImporter\Service\Vault;
 
 /**
@@ -111,7 +113,7 @@ abstract class AbstractImporter implements ImporterInterface
 
     /**
      * @Flow\Inject
-     * @var SystemLoggerInterface
+     * @var LoggerInterface
      */
     protected $logger;
 
@@ -219,22 +221,6 @@ abstract class AbstractImporter implements ImporterInterface
     protected $partName;
 
     /**
-     * Mapping between severity constants and string
-     *
-     * @var array
-     */
-    protected $severityLabels = [
-        LOG_EMERG => 'Emergency',
-        LOG_ALERT => 'Alert',
-        LOG_CRIT => 'Critcyl',
-        LOG_ERR => 'Error',
-        LOG_WARNING => 'Warning',
-        LOG_NOTICE => 'Notice',
-        LOG_INFO => 'Info',
-        LOG_DEBUG => 'Debug',
-    ];
-
-    /**
      * @param array $options
      * @param string $currentImportIdentifier
      * @param Vault|null $vault
@@ -323,7 +309,7 @@ abstract class AbstractImporter implements ImporterInterface
                 throw new Exception(sprintf('Site node not found (%s)', $siteNodePath ?: $siteNodeIdentifier), 1425077201);
             }
         } else {
-            $this->log(get_class($this) . ': siteNodePath is not defined. Please make sure to set the target siteNodePath in your importer options.', LOG_WARNING);
+            $this->log(get_class($this) . ': siteNodePath is not defined. Please make sure to set the target siteNodePath in your importer options.', LogLevel::WARNING);
         }
     }
 
@@ -516,12 +502,12 @@ abstract class AbstractImporter implements ImporterInterface
     protected function skipNodeProcessing($externalIdentifier, $nodeName, NodeInterface $storageNode, $skipExistingNode = true, $skipAlreadyProcessed = true)
     {
         if ($skipAlreadyProcessed === true && $this->getNodeProcessing($externalIdentifier)) {
-            $this->importService->addEventMessage('Node:Processed:Skipped', 'Skip already processed', LOG_NOTICE, $this->currentEvent);
+            $this->importService->addEventMessage('Node:Processed:Skipped', 'Skip already processed', LogLevel::NOTICE, $this->currentEvent);
             return true;
         }
         $node = $storageNode->getNode($nodeName);
         if ($skipExistingNode === true && $node instanceof NodeInterface) {
-            $this->importService->addEventMessage('Node:Existing:Skipped', 'Skip existing node', LOG_WARNING, $this->currentEvent);
+            $this->importService->addEventMessage('Node:Existing:Skipped', 'Skip existing node', LogLevel::WARNING, $this->currentEvent);
             $this->registerNodeProcessing($node, $externalIdentifier);
             return true;
         }
@@ -558,13 +544,16 @@ abstract class AbstractImporter implements ImporterInterface
 
     /**
      * Create an entry in the event log
+     * @param $message
+     * @param int $severity
+     * @throws Exception
      */
-    protected function log($message, $severity = LOG_INFO)
+    protected function log($message, $severity = LogLevel::INFO)
     {
-        if (!isset($this->severityLabels[$severity])) {
+        if (array_key_exists($severity, Logger::LOGLEVEL_MAPPING) === false) {
             throw new Exception('Invalid severity value', 1426868867);
         }
-        $this->importService->addEventMessage(sprintf('Record:Import:Log:%s', $this->severityLabels[$severity]), $message, $severity, $this->currentEvent);
+        $this->importService->addEventMessage(sprintf('Record:Import:Log:%s', $severity), $message, $severity, $this->currentEvent);
     }
 
     /**

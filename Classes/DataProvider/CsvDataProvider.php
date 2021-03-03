@@ -4,7 +4,6 @@ namespace Ttree\ContentRepositoryImporter\DataProvider;
 use Ttree\ContentRepositoryImporter\Exception\InvalidArgumentException;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Log\SystemLoggerInterface;
 
 /**
  * Csv Data Provider
@@ -56,7 +55,7 @@ class CsvDataProvider extends AbstractDataProvider
             $this->csvEnclosure = $this->options['csvEnclosure'];
         }
 
-        $this->logger->log(sprintf('%s will read from "%s", using %s as delimiter and %s as enclosure character.', get_class($this), $this->csvFilePath, $this->csvDelimiter, $this->csvEnclosure), LOG_DEBUG);
+        $this->logger->debug(sprintf('%s will read from "%s", using %s as delimiter and %s as enclosure character.', get_class($this), $this->csvFilePath, $this->csvDelimiter, $this->csvEnclosure));
     }
 
     /**
@@ -65,8 +64,6 @@ class CsvDataProvider extends AbstractDataProvider
      * If offset and / or limit are set, only those records will be returned.
      *
      * @return array The records
-     * @throws \Exception
-     * @throws InvalidArgumentException
      */
     public function fetch()
     {
@@ -97,7 +94,7 @@ class CsvDataProvider extends AbstractDataProvider
             }
             fclose($handle);
         }
-        $this->logger->log(sprintf('%s: read %s lines and found %s records.', $this->csvFilePath, $currentLine, count($dataResult)), LOG_DEBUG);
+        $this->logger->debug(sprintf('%s: read %s lines and found %s records.', $this->csvFilePath, $currentLine, count($dataResult)));
         return $dataResult;
     }
 

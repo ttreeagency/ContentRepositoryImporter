@@ -4,9 +4,10 @@ namespace Ttree\ContentRepositoryImporter\Domain\Model;
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
-use Neos\Flow\Log\SystemLoggerInterface;
+use Psr\Log\LogLevel;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Neos\EventLog\Domain\Service\EventEmittingService;
+use Psr\Log\LoggerInterface;
 
 /**
  * @Flow\Entity
@@ -38,12 +39,13 @@ class Import
 
     /**
      * @Flow\Inject
-     * @var SystemLoggerInterface
+     * @var LoggerInterface
      */
     protected $logger;
 
     /**
      * @param integer $initializationCause
+     * @throws \Exception
      */
     public function initializeObject($initializationCause)
     {
@@ -77,13 +79,13 @@ class Import
      * @param array $data
      * @param Event $parentEvent
      * @return Event
-     * @throws \Neos\Neos\Exception
      */
     public function addEvent($eventType, $externalIdentifier = null, array $data = null, Event $parentEvent = null)
     {
         if (is_array($data) && isset($data['__message'])) {
             $message = $parentEvent ? sprintf('- %s', $data['__message']) : $data['__message'];
-            $this->logger->log($message, isset($data['__severity']) ? (integer)$data['__severity'] : LOG_INFO);
+            $severity = isset($data['__severity']) ? $data['__severity'] : LogLevel::INFO;
+            $this->logger->log($severity, $message);
         }
         $event = new Event($eventType, $data, null, $parentEvent);
         $event->setExternalIdentifier($externalIdentifier);
@@ -120,7 +122,7 @@ class Import
     }
 
     /**
-     * @return \DateTimeImmutable
+     * @return \DateTime
      */
     public function getStartTime()
     {
@@ -128,7 +130,7 @@ class Import
     }
 
     /**
-     * @return \DateTimeImmutable
+     * @return \DateTime
      */
     public function getEndTime()
     {

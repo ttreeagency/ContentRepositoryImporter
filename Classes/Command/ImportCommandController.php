@@ -1,6 +1,10 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Command;
 
+use Neos\Flow\Cli\Exception\StopCommandException;
+use Neos\Flow\Log\ThrowableStorageInterface;
+use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
+use Psr\Log\LoggerInterface;
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\Domain\Model\PresetPartDefinition;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
@@ -13,11 +17,14 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
 use Neos\Flow\Core\Booting\Scripts;
 use Neos\Flow\Exception;
-use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Utility\Arrays;
-use Neos\Neos\EventLog\Domain\Service\EventEmittingService;
 use Ttree\ContentRepositoryImporter\Service\Vault;
+use Neos\Flow\Log\Utility\LogEnvironment;
+use function array_pop;
+use function json_encode;
+use function vsprintf;
+use const PHP_EOL;
 
 /**
  * Import Command Controller
@@ -58,15 +65,9 @@ class ImportCommandController extends CommandController
 
     /**
      * @Flow\Inject
-     * @var SystemLoggerInterface
+     * @var ThrowableStorageInterface
      */
-    protected $logger;
-
-    /**
-     * @Flow\Inject
-     * @var EventEmittingService
-     */
-    protected $eventEmittingService;
+    protected $throwableStorage;
 
     /**
      * @Flow\Inject
@@ -90,6 +91,12 @@ class ImportCommandController extends CommandController
     protected $batchCounter = 0;
 
     /**
+     * @Flow\Inject
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
      * @param array $settings
      */
     public function injectSettings(array $settings)
@@ -102,6 +109,7 @@ class ImportCommandController extends CommandController
      *
      * @param string $preset
      * @param string $parts
+     * @throws StopCommandException
      */
     public function initCommand($preset, $parts = '')
     {
@@ -135,7 +143,7 @@ class ImportCommandController extends CommandController
      * Show the different pars of the preset
      *
      * @param string $preset
-     * @param string $parts
+     * @throws StopCommandException
      */
     public function showCommand($preset)
     {
@@ -170,6 +178,9 @@ class ImportCommandController extends CommandController
      * @param string $identifier External identifier which is used for checking if an import of the same data has already been executed earlier.
      * @param boolean $force If set, an import will even be executed if it ran earlier with the same external import identifier.
      * @return void
+     * @throws Exception
+     * @throws StopCommandException
+     * @throws IllegalObjectTypeException
      */
     public function batchCommand($preset, $parts = '', $batchSize = null, $identifier = null, $force = false)
     {
@@ -232,6 +243,7 @@ class ImportCommandController extends CommandController
     /**
      * @param string $preset
      * @return array
+     * @throws StopCommandException
      */
     protected function loadPreset($preset)
     {
@@ -251,6 +263,8 @@ class ImportCommandController extends CommandController
      *
      * @param PresetPartDefinition $partSetting
      * @return integer The number of records which have been imported
+     * @throws Exception
+     * @throws StopCommandException
      */
     protected function executeCommand(PresetPartDefinition $partSetting)
     {
@@ -265,9 +279,9 @@ class ImportCommandController extends CommandController
             $commandIdentifier = 'ttree.contentrepositoryimporter:import:executebatch';
             $status = Scripts::executeCommand($commandIdentifier, $this->flowSettings, true, $partSetting->getCommandArguments());
             if ($status !== true) {
-                throw new Exception(\vsprintf('Command: %s with parameters: %s', [$commandIdentifier, \json_encode($partSetting->getCommandArguments())]), 1426767159);
+                throw new Exception(vsprintf('Command: %s with parameters: %s', [$commandIdentifier, json_encode($partSetting->getCommandArguments())]), 1426767159);
             }
-            $output = explode(\PHP_EOL, ob_get_clean());
+            $output = explode(PHP_EOL, ob_get_clean());
             if (count($output) > 1) {
                 $this->outputLine('<error>+</error> <b>Command "%s"</b>', [$commandIdentifier]);
                 $this->outputLine('<error>+</error> <comment>  with parameters:</comment>');
@@ -282,7 +296,7 @@ class ImportCommandController extends CommandController
                     $this->outputLine('<error>+</error> %s', [$line]);
                 }
             }
-            $count = (int)\array_pop($output);
+            $count = (int)array_pop($output);
             $count = $count < 1 ? 0 : $count;
 
             $elapsedTime = (microtime(true) - $startTime) * 1000;
@@ -298,7 +312,8 @@ class ImportCommandController extends CommandController
             $this->importService->persistEntities();
             return $count;
         } catch (\Exception $exception) {
-            $this->logger->logException($exception);
+            $logMessage = $this->throwableStorage->logThrowable($exception);
+            $this->logger->error($logMessage, LogEnvironment::fromMethodName(__METHOD__));
             $this->outputLine('Error in parts "%s", please check your logs for more details', [$partSetting->getLabel()]);
             $this->outputLine('<error>%s</error>', [$exception->getMessage()]);
             $this->importService->addEvent(sprintf('%s:Failed', $partSetting->getEventType()), null, $partSetting->getCommandArguments());
@@ -345,9 +360,10 @@ class ImportCommandController extends CommandController
             $importer->initialize($dataProvider);
             $importer->process();
             $importer->getImportService()->addEventMessage(sprintf('%s:Batch:Ended', $importerClassName), sprintf('%s batch ended (%s)', $importerClassName, $dataProviderClassName));
-            $this->output($importer->getProcessedRecords());
+            $this->output((string)$importer->getProcessedRecords());
         } catch (\Exception $exception) {
-            $this->logger->logException($exception);
+            $logMessage = $this->throwableStorage->logThrowable($exception);
+            $this->logger->error($logMessage, LogEnvironment::fromMethodName(__METHOD__));
             $this->outputLine('<error>%s</error>', [$exception->getMessage()]);
             $this->sendAndExit(1);
         }
@@ -379,7 +395,7 @@ class ImportCommandController extends CommandController
      *
      * @param array $presetSettings
      * @param string $preset
-     * @throws \Neos\Flow\Mvc\Exception\StopActionException
+     * @throws StopCommandException
      */
     protected function checkForPartsSettingsOrQuit(array $presetSettings, $preset)
     {
