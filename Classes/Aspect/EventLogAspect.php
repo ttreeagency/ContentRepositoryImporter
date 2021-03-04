@@ -1,7 +1,11 @@
 <?php
+declare(strict_types=1);
+
 namespace Ttree\ContentRepositoryImporter\Aspect;
 
 use Psr\Log\LoggerInterface;
+use Exception;
+use Neos\Flow\Log\ThrowableStorageInterface;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Importer\ImporterInterface;
 use Neos\Flow\Annotations as Flow;
@@ -9,6 +13,7 @@ use Neos\Flow\Aop\JoinPointInterface;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Utility\Arrays;
 use Neos\ContentRepository\Domain\Repository\NodeDataRepository;
+use Neos\Flow\Log\Utility\LogEnvironment;
 
 /**
  * Aspect to automatically handle EventLog in Importer object
@@ -42,10 +47,17 @@ class EventLogAspect
     protected $logger;
 
     /**
+     * @Flow\Inject
+     * @var ThrowableStorageInterface
+     */
+    protected $throwableStorage;
+
+    /**
      * Add record started event
      *
      * @Flow\Before("within(Ttree\ContentRepositoryImporter\Importer\ImporterInterface) && method(.*->processRecord())")
      * @param JoinPointInterface $joinPoint
+     * @throws \Neos\Flow\Exception
      */
     public function addRecordStartedEvent(JoinPointInterface $joinPoint)
     {
@@ -67,15 +79,14 @@ class EventLogAspect
      * As an import batch can be a long running process, this ensure that the EventLog is flushed after each record processing
      *
      * @Flow\After("within(Ttree\ContentRepositoryImporter\Importer\ImporterInterface) && method(.*->processRecord())")
-     * @param JoinPointInterface $joinPoint
      */
-    public function flushEvents(JoinPointInterface $joinPoint)
+    public function flushEvents()
     {
         try {
             $this->importService->persistEntities();
             $this->nodeDataRepository->persistEntities();
-        } catch (\Exception $exception) {
-            $this->logger->logException($exception);
+        } catch (Exception $exception) {
+            $this->logger->error($this->throwableStorage->logThrowable($exception), LogEnvironment::fromMethodName(__METHOD__));
         }
     }
 

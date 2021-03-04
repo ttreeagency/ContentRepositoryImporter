@@ -1,6 +1,8 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Service;
 
+use Neos\Flow\Exception;
+use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Ttree\ContentRepositoryImporter\Domain\Repository\RecordMappingRepository;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
@@ -32,6 +34,8 @@ class ProcessedNodeService
      * @param string $nodeIdentifier
      * @param string $nodePath
      * @param string $presetPath
+     * @throws Exception
+     * @throws IllegalObjectTypeException
      */
     public function set($importerClassName, $externalIdentifier, $externalRelativeUri, $nodeIdentifier, $nodePath, $presetPath)
     {

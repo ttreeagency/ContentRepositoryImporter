@@ -4,6 +4,8 @@ namespace Ttree\ContentRepositoryImporter\DataProvider;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Query\QueryBuilder;
+use Exception;
 use Neos\Flow\Annotations as Flow;
 
 /**
@@ -17,9 +19,10 @@ abstract class AbstractDatabaseDataProvider extends AbstractDataProvider
     protected $connections = [];
 
     /**
-     * @return \Doctrine\DBAL\Query\QueryBuilder
+     * @return QueryBuilder
+     * @throws Exception
      */
-    protected function createQuery()
+    protected function createQuery(): QueryBuilder
     {
         $query = $this->getDatabaseConnection()
             ->createQueryBuilder();
@@ -35,9 +38,9 @@ abstract class AbstractDatabaseDataProvider extends AbstractDataProvider
 
     /**
      * @return Connection
-     * @throws \Exception
+     * @throws Exception
      */
-    protected function getDatabaseConnection()
+    protected function getDatabaseConnection(): Connection
     {
         $sourceName = isset($this->options['source']) ? $this->options['source'] : 'default';
 

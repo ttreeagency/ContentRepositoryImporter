@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Ttree\ContentRepositoryImporter\DataType;
 
 use Gedmo\Uploadable\MimeType\MimeTypeGuesser;
@@ -96,14 +98,14 @@ class ExternalResource extends DataType
         if ($fileExtension === '') {
             $mimeTypeGuesser = new MimeTypeGuesser();
             $mimeType = $mimeTypeGuesser->guess($temporaryFileAndPathname);
-            $this->logger->log(sprintf('Try to guess mime type for "%s" (%s), result: %s', $sourceUri, $filename, $mimeType), LOG_DEBUG);
+            $this->logger->debug(sprintf('Try to guess mime type for "%s" (%s), result: %s', $sourceUri, $filename, $mimeType));
             $fileExtension = MediaTypes::getFilenameExtensionFromMediaType($mimeType);
             if ($fileExtension !== '') {
                 $oldTemporaryDestination = $temporaryFileAndPathname;
                 $temporaryFileAndPathname = sprintf('%s.%s', $temporaryFileAndPathname, $fileExtension);
                 if (!is_file($temporaryFileAndPathname)) {
                     copy($oldTemporaryDestination, $temporaryFileAndPathname);
-                    $this->logger->log(sprintf('Rename "%s" to "%s"', $oldTemporaryDestination, $temporaryFileAndPathname), LOG_DEBUG);
+                    $this->logger->debug(sprintf('Rename "%s" to "%s"', $oldTemporaryDestination, $temporaryFileAndPathname));
                 }
             }
         }
@@ -115,11 +117,11 @@ class ExternalResource extends DataType
         $sha1Hash = sha1_file($temporaryFileAndPathname);
         $resource = $this->resourceManager->getResourceBySha1($sha1Hash);
         if ($resource === null) {
-            $this->logger->log('Import new resource', LOG_DEBUG);
+            $this->logger->debug('Import new resource');
             $resource = $this->resourceManager->importResource($temporaryFileAndPathname);
             $resource->setFilename(basename($temporaryFileAndPathname));
         } else {
-            $this->logger->log('Use existing resource', LOG_DEBUG);
+            $this->logger->debug('Use existing resource');
         }
 
         $this->temporaryFileAndPathname = $temporaryFileAndPathname;
@@ -165,13 +167,15 @@ class ExternalResource extends DataType
      * @param string $source
      * @param string $destination
      * @param boolean $force
+     * @param string|null $username
+     * @param string|null $password
      * @return boolean
      * @throws Exception
      */
     protected function download($source, $destination, $force = false, $username = null, $password = null)
     {
         if ($force === false && is_file($destination)) {
-            $this->logger->log(sprintf('External resource "%s" skipped, local file "%s" exist', $source, $destination), LOG_DEBUG);
+            $this->logger->debug(sprintf('External resource "%s" skipped, local file "%s" exist', $source, $destination));
             return true;
         }
         $fp = fopen($destination, 'w');
@@ -191,7 +195,7 @@ class ExternalResource extends DataType
 
         fclose($fp);
 
-        $this->logger->log(sprintf('External resource "%s" downloaded to "%s"', $source, $destination), LOG_DEBUG);
+        $this->logger->debug(sprintf('External resource "%s" downloaded to "%s"', $source, $destination));
 
         return true;
     }

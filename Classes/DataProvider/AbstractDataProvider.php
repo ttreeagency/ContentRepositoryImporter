@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Ttree\ContentRepositoryImporter\DataProvider;
 
 use Neos\Cache\Frontend\VariableFrontend;
@@ -89,7 +91,7 @@ abstract class AbstractDataProvider implements DataProviderInterface
      * @param integer $limit Maximum number of records which should be imported
      * @return DataProviderInterface
      */
-    public static function create(array $options = [], $offset = null, $limit = null)
+    public static function create(array $options = [], $offset = null, $limit = null): DataProviderInterface
     {
         $dataProvider = new static($options, new Vault($options['__presetName']));
         $dataProvider->setOffset($offset);
@@ -101,11 +103,11 @@ abstract class AbstractDataProvider implements DataProviderInterface
     /**
      * Set the offset (record number) to start importing at
      *
-     * @param integer $offset
+     * @param int $offset
      */
     public function setOffset($offset)
     {
-        $this->offset = (integer)$offset;
+        $this->offset = (int)$offset;
     }
 
     /**

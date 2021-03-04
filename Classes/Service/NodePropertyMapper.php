@@ -6,6 +6,7 @@ use Neos\ContentRepository\Domain\Model\NodeTemplate;
 use Ttree\ContentRepositoryImporter\Domain\Model\Event;
 use Ttree\ContentRepositoryImporter\Domain\Model\ProviderPropertyValidity;
 use Neos\Flow\Annotations as Flow;
+use Psr\Log\LogLevel;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 
 /**
@@ -52,9 +53,9 @@ class NodePropertyMapper
         if ($nodeOrTemplate instanceof NodeInterface) {
             $path = $nodeOrTemplate->getContextPath();
             if ($nodeChanged) {
-                $this->importService->addEventMessage('Node:Processed:Updated', sprintf('Updating existing node "%s" %s (%s)', $nodeOrTemplate->getLabel(), $path, $nodeOrTemplate->getIdentifier()), \LOG_INFO, $currentEvent);
+                $this->importService->addEventMessage('Node:Processed:Updated', sprintf('Updating existing node "%s" %s (%s)', $nodeOrTemplate->getLabel(), $path, $nodeOrTemplate->getIdentifier()), LogLevel::INFO, $currentEvent);
             } else {
-                $this->importService->addEventMessage('Node:Processed:Skipped', sprintf('Skipping unchanged node "%s" %s (%s)', $nodeOrTemplate->getLabel(), $path, $nodeOrTemplate->getIdentifier()), \LOG_NOTICE, $currentEvent);
+                $this->importService->addEventMessage('Node:Processed:Skipped', sprintf('Skipping unchanged node "%s" %s (%s)', $nodeOrTemplate->getLabel(), $path, $nodeOrTemplate->getIdentifier()), LogLevel::NOTICE, $currentEvent);
             }
         }
 

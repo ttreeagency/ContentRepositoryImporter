@@ -1,7 +1,6 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Domain\Repository;
 
-use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
 use Neos\Flow\Annotations as Flow;

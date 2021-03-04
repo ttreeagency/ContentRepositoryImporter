@@ -1,7 +1,8 @@
 <?php
+declare(strict_types=1);
+
 namespace Ttree\ContentRepositoryImporter\Domain\Repository;
 
-use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Persistence\Repository;
