@@ -44,7 +44,7 @@ class ImportCommandController extends CommandController
 
     /**
      * @Flow\Inject
-     * @var RecordMappingRepository\
+     * @var RecordMappingRepository
      */
     protected $recordMapperRepository;
 
@@ -92,12 +92,6 @@ class ImportCommandController extends CommandController
      * @var integer
      */
     protected $batchCounter = 0;
-
-    /**
-     * @Flow\Inject
-     * @var LoggerInterface
-     */
-    protected $logger;
 
     /**
      * @param array $settings
