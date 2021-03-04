@@ -2,9 +2,9 @@
 namespace Ttree\ContentRepositoryImporter\DataProvider;
 
 use Neos\Cache\Frontend\VariableFrontend;
+use Psr\Log\LoggerInterface;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Log\SystemLoggerInterface;
 use Ttree\ContentRepositoryImporter\Service\Vault;
 
 /**
@@ -15,9 +15,8 @@ use Ttree\ContentRepositoryImporter\Service\Vault;
 abstract class AbstractDataProvider implements DataProviderInterface
 {
     /**
-     * @Flow\Inject
-     * @var SystemLoggerInterface
-     * @api
+     * @Flow\Inject(name="Neos.Flow:SystemLogger")
+     * @var LoggerInterface
      */
     protected $logger;
 

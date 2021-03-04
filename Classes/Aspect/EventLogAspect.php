@@ -1,11 +1,11 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Aspect;
 
+use Psr\Log\LoggerInterface;
 use Ttree\ContentRepositoryImporter\Domain\Service\ImportService;
 use Ttree\ContentRepositoryImporter\Importer\ImporterInterface;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
-use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Utility\Arrays;
 use Neos\ContentRepository\Domain\Repository\NodeDataRepository;
@@ -36,8 +36,8 @@ class EventLogAspect
     protected $nodeDataRepository;
 
     /**
-     * @Flow\Inject
-     * @var SystemLoggerInterface
+     * @Flow\Inject(name="Neos.Flow:SystemLogger")
+     * @var LoggerInterface
      */
     protected $logger;
 

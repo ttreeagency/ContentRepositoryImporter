@@ -4,10 +4,10 @@ namespace Ttree\ContentRepositoryImporter\DataType;
 use Gedmo\Uploadable\MimeType\MimeTypeGuesser;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
-use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\ResourceManagement\ResourceManager;
 use Neos\Utility\Files;
 use Neos\Utility\MediaTypes;
+use Psr\Log\LoggerInterface;
 
 /**
  * String Data Type
@@ -15,8 +15,8 @@ use Neos\Utility\MediaTypes;
 class ExternalResource extends DataType
 {
     /**
-     * @Flow\Inject
-     * @var SystemLoggerInterface
+     * @Flow\Inject(name="Neos.Flow:SystemLogger")
+     * @var LoggerInterface
      */
     protected $logger;
 

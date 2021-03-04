@@ -4,9 +4,9 @@ namespace Ttree\ContentRepositoryImporter\Domain\Model;
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Exception;
-use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Neos\EventLog\Domain\Service\EventEmittingService;
+use Psr\Log\LoggerInterface;
 
 /**
  * @Flow\Entity
@@ -37,8 +37,8 @@ class Import
     protected $eventEmittingService;
 
     /**
-     * @Flow\Inject
-     * @var SystemLoggerInterface
+     * @Flow\Inject(name="Neos.Flow:SystemLogger")
+     * @var LoggerInterface
      */
     protected $logger;
 

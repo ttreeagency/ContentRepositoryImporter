@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Ttree\ContentRepositoryImporter\Domain\Repository;
 
 use Doctrine\DBAL\Connection;
@@ -14,8 +16,9 @@ class EventRepository extends NeosEventRepository
      * Remove all events without checking foreign keys. Needed for clearing the table during tests.
      *
      * @return void
+     * @throws \Doctrine\DBAL\Exception
      */
-    public function removeAll()
+    public function removeAll(): void
     {
         /** @var Connection $connection */
         $connection = $this->entityManager->getConnection();

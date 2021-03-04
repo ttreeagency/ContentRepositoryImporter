@@ -1,6 +1,7 @@
 <?php
 namespace Ttree\ContentRepositoryImporter\Command;
 
+use Psr\Log\LoggerInterface;
 use Ttree\ContentRepositoryImporter\DataProvider\DataProviderInterface;
 use Ttree\ContentRepositoryImporter\Domain\Model\PresetPartDefinition;
 use Ttree\ContentRepositoryImporter\Domain\Model\RecordMapping;
@@ -13,7 +14,6 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
 use Neos\Flow\Core\Booting\Scripts;
 use Neos\Flow\Exception;
-use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Utility\Arrays;
 use Neos\Neos\EventLog\Domain\Service\EventEmittingService;
@@ -57,8 +57,8 @@ class ImportCommandController extends CommandController
     protected $objectManager;
 
     /**
-     * @Flow\Inject
-     * @var SystemLoggerInterface
+     * @Flow\Inject(name="Neos.Flow:SystemLogger")
+     * @var LoggerInterface
      */
     protected $logger;
 

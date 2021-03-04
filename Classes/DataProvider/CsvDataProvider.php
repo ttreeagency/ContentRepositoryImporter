@@ -4,7 +4,6 @@ namespace Ttree\ContentRepositoryImporter\DataProvider;
 use Ttree\ContentRepositoryImporter\Exception\InvalidArgumentException;
 use Ttree\ContentRepositoryImporter\Service\ProcessedNodeService;
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Log\SystemLoggerInterface;
 
 /**
  * Csv Data Provider
