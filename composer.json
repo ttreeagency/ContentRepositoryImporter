@@ -4,7 +4,7 @@
     "type": "neos-package",
     "license": "MIT",
     "require": {
-        "neos/neos": "^7.0.0",
+        "neos/neos": "^7.0 || ^8.0",
         "ezyang/htmlpurifier": "^4.10.0",
         "cocur/slugify": "^2.5"
     },
