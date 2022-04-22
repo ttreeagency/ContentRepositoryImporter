@@ -1,4 +1,5 @@
 <?php
+
 namespace Ttree\ContentRepositoryImporter\Domain\Repository;
 
 use Doctrine\DBAL\Connection;
@@ -15,7 +16,7 @@ class EventRepository extends NeosEventRepository
      *
      * @return void
      */
-    public function removeAll()
+    public function removeAll(): void
     {
         /** @var Connection $connection */
         $connection = $this->entityManager->getConnection();
