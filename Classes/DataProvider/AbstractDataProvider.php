@@ -69,6 +69,11 @@ abstract class AbstractDataProvider implements DataProviderInterface
     protected $partName;
 
     /**
+     * @var array
+     */
+    protected $exceedingArguments = [];
+
+    /**
      * @param array $options
      * @param Vault|null $vault
      * @api
@@ -88,13 +93,17 @@ abstract class AbstractDataProvider implements DataProviderInterface
      * @param array $options Options for the Data Provider
      * @param integer $offset Record offset where the import should start
      * @param integer $limit Maximum number of records which should be imported
+     * @param array $exceedingArguments Exceeding arguments of the command
      * @return DataProviderInterface
      */
-    public static function create(array $options = [], $offset = null, $limit = null): DataProviderInterface
+    public static function create(array $options = [], $offset = null, $limit = null, $exceedingArguments = null): DataProviderInterface
     {
         $dataProvider = new static($options, new Vault($options['__presetName']));
         $dataProvider->setOffset($offset);
         $dataProvider->setLimit($limit);
+        if ($exceedingArguments) {
+            $dataProvider->setExceedingArguments($exceedingArguments);
+        }
 
         return $dataProvider;
     }
@@ -127,6 +136,22 @@ abstract class AbstractDataProvider implements DataProviderInterface
     public function hasLimit()
     {
         return $this->limit > 0;
+    }
+
+    /**
+     * @return array
+     */
+    public function getExceedingArguments()
+    {
+        return $this->exceedingArguments;
+    }
+
+    /**
+     * @param array $exceedingArguments
+     */
+    public function setExceedingArguments($exceedingArguments)
+    {
+        $this->exceedingArguments = $exceedingArguments;
     }
 
 }
