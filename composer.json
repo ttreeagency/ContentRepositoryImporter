@@ -14,7 +14,7 @@
         }
     },
     "extra": {
-      "branch-alias": {
+        "branch-alias": {
             "dev-master": "4.1.x-dev"
         },
         "applied-flow-migrations": [
@@ -88,7 +88,19 @@
             "Neos.Fusion-20170120013047",
             "Neos.Flow-20170125103800",
             "Neos.Seo-20170127154600",
-            "Neos.Flow-20170127183102"
+            "Neos.Flow-20170127183102",
+            "Neos.SwiftMailer-20161130105617",
+            "Neos.ContentRepository.Search-20161210231100",
+            "Neos.Flow-20180415105700",
+            "Neos.Neos-20180907103800",
+            "Neos.Neos.Ui-20190319094900",
+            "Neos.Flow-20190425144900",
+            "Neos.Flow-20190515215000",
+            "Neos.Flow-20200813181400",
+            "Neos.Flow-20201003165200",
+            "Neos.Flow-20201109224100",
+            "Neos.Flow-20201205172733",
+            "Neos.Flow-20201207104500"
         ]
     }
 }
